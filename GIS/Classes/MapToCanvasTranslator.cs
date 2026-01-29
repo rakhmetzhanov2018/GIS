@@ -6,7 +6,6 @@ namespace GIS.Classes
     {
         static public GeoBounds Bounds { get; set; } = new GeoBounds();
         static public Size CanvasSize { get; set; }
-
         static private double Ratio { get; set; }
         static public void CalculateRatios()
         {
@@ -16,7 +15,27 @@ namespace GIS.Classes
         }
         static public Point TranslateCoords(double X, double Y)
         {
-            return new Point((X - Bounds.MinLon) * Ratio, CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
+            return new Point((X - Bounds.MinLon) * Ratio, 
+                CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
+        }
+        static public string GetScale()
+        {
+            const int EARTH_RADIUS_CM = 637100000;
+
+            double deltaLon = (Bounds.MaxLon - Bounds.MinLon) * Math.PI / 180;
+            double Lat = (Bounds.MaxLat + Bounds.MinLat) / 2 * Math.PI / 180;
+
+            double sqSinLon = Math.Pow(Math.Sin(deltaLon / 2), 2);
+
+            double d = 2 * EARTH_RADIUS_CM * 
+                Math.Asin(Math.Sqrt(sqSinLon * Math.Pow(Math.Cos(Lat), 2)));
+
+
+            double pixelsPerCM = CanvasSize.Width / 96.0 * 2.54;
+
+            return $"1:{d / pixelsPerCM:f0}";
+
+
         }
     }
 }

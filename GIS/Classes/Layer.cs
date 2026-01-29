@@ -2,6 +2,7 @@
 using GIS.Classes.OtherObjects;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,11 +10,24 @@ using System.Windows.Controls;
 
 namespace GIS.Classes
 {
-    internal class Layer
+    internal class Layer : INotifyPropertyChanged
     {
+        private bool isVisible = true;
         public string Name { get; set; } = "Новый слой";
-        public Boolean IsVisible { get; set; } = true;
+        public Boolean IsVisible
+        { get => isVisible;
+            set 
+            {
+                if (isVisible != value)
+                {
+                    isVisible = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(isVisible)));
+                    VisibilityChanged?.Invoke(this, EventArgs.Empty);
+                }
+            } 
+        }
         public List<Feature> ObjectList { get; } = new();
+        public GeoBounds Bounds { get; set; }
 
         public Layer() { }
         public Layer(string name, Boolean isVisible = true)
@@ -21,6 +35,10 @@ namespace GIS.Classes
             Name = name;
             IsVisible = isVisible;
         }
+
+        public event EventHandler VisibilityChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public void AddObject(Feature ob)
         {
             ObjectList.Add(ob);

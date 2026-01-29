@@ -27,12 +27,14 @@
                 <Button Name="LoadFileButton" Margin="10" Width="Auto" Height="40" Content="Загрузить" FontSize="20" Click="LoadFileButton_Click"/>
             </StackPanel>
 
-            <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat">
+            <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat" MouseDoubleClick="LayerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="True"/>
-                            <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" 
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -50,6 +52,14 @@
             <Separator/>
             <StatusBarItem>
                 <TextBlock x:Name="ScaleTextBox" Text="Масштаб: 1:5000"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="BoundsCenterTextBox" Text="Границ пока нет"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="BoundsSizeTextBox" Text="Границ пока нет"/>
             </StatusBarItem>
         </StatusBar>
 

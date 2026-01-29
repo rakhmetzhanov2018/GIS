@@ -29,6 +29,11 @@ namespace GIS
             DataContext = this;
 
             LayerListBox.ItemsSource = layersList;
+
+            foreach (Layer layer in layersList)
+            {
+                layer.VisibilityChanged += OnLayerVisibilityChanged;
+            }
         }
 
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
@@ -60,7 +65,7 @@ namespace GIS
 
                 Layer newLayer = new()
                 {
-                    Name = "Новый слой"
+                    Name = System.IO.Path.GetFileName(filePath)
                 };
 
                 ParseGeoJSON(newLayer, text);
@@ -70,6 +75,7 @@ namespace GIS
 
                 layersList.Add(newLayer);
                 newLayer.CreateAll();
+                newLayer.VisibilityChanged += OnLayerVisibilityChanged;
                 Draw();
 
                 StatusTextBox.Text = "Добавлен новый слой";
@@ -98,10 +104,11 @@ namespace GIS
             {
                 layer.AddObject(ParseFeature(root, ref bounds));
             }
-
             MapToCanvasTranslator.Bounds = bounds;
             MapToCanvasTranslator.CanvasSize = MapCanvas.RenderSize;
             MapToCanvasTranslator.CalculateRatios();
+
+            layer.Bounds = bounds;
         }
 
         private void ParseFeatureCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
@@ -185,6 +192,22 @@ namespace GIS
                 layer.UpdateAll(mousePos.X, mousePos.Y, 1);
 
             }
+            UpdateScale();
+        }
+
+        private void ZoomToLayer(Layer layer)
+        {
+            MapToCanvasTranslator.Bounds = layer.Bounds;
+            MapToCanvasTranslator.CalculateRatios();
+            Draw();
+        }
+
+        private void LayerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (LayerListBox.SelectedItem is Layer layer)
+            {
+                ZoomToLayer(layer);
+            }
         }
 
         #endregion Управление MapCanvas
@@ -214,9 +237,43 @@ namespace GIS
                     layer.DrawAll(MapCanvas);
                 }
             }
-            ScaleTextBox.Text = MapToCanvasTranslator.Bounds.ToString();
+            UpdateScale();
+            UpdateBoundsDisplay();
         }
 
         #endregion Рисование фигур
+
+        private void OnLayerVisibilityChanged(object sender, EventArgs e)
+        {
+            Draw();
+        }
+        private void UpdateScale()
+        {
+            MapToCanvasTranslator.CanvasSize = new Size(MapCanvas.ActualWidth, MapCanvas.ActualHeight);
+            ScaleTextBox.Text = MapToCanvasTranslator.GetScale();
+        }
+        private void UpdateBoundsDisplay()
+        {
+            const double KM_PER_DEGREE = 111.32;
+
+            if (MapToCanvasTranslator.Bounds.MinLon == double.MaxValue)
+            {
+                BoundsCenterTextBox.Text = "Границ пока нет";
+                BoundsSizeTextBox.Text = "Границ пока нет";
+                return;
+            }
+
+            double centerLon = (MapToCanvasTranslator.Bounds.MinLon + MapToCanvasTranslator.Bounds.MaxLon) / 2;
+            double centerLat = (MapToCanvasTranslator.Bounds.MinLat + MapToCanvasTranslator.Bounds.MaxLat) / 2;
+
+            double deltaLon = (MapToCanvasTranslator.Bounds.MaxLon - MapToCanvasTranslator.Bounds.MinLon);
+            double deltaLat = (MapToCanvasTranslator.Bounds.MaxLat - MapToCanvasTranslator.Bounds.MinLat);
+
+            double widthKM = deltaLon * KM_PER_DEGREE;
+            double heightKM = deltaLat * KM_PER_DEGREE * Math.Cos(centerLat * Math.PI / 180);
+
+            BoundsCenterTextBox.Text = $"Центр: {centerLon:F6}°; {centerLat:F6}°";
+            BoundsSizeTextBox.Text = $"Размер: {widthKM:F1}×{heightKM:F1} км";
+        }
     }
 }
