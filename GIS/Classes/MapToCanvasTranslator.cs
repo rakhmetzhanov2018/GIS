@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Data;
+using System.Windows;
 
 namespace GIS.Classes
 {
@@ -7,6 +8,9 @@ namespace GIS.Classes
         static public GeoBounds Bounds { get; set; } = new GeoBounds();
         static public Size CanvasSize { get; set; }
         static private double Ratio { get; set; }
+        static public double GlobalOffsetX { get; set; } = 0;
+        static public double GlobalOffsetY { get; set; } = 0;
+        static public double GlobalScale { get; set; } = 1;
         static public void CalculateRatios()
         {
             double yRatio = CanvasSize.Height / (Bounds.MaxLat - Bounds.MinLat);
@@ -16,7 +20,7 @@ namespace GIS.Classes
         static public Point TranslateCoords(double X, double Y)
         {
             return new Point((X - Bounds.MinLon) * Ratio, 
-                CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
+               CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
         }
         static public string GetScale()
         {
@@ -35,7 +39,13 @@ namespace GIS.Classes
 
             return $"1:{d / pixelsPerCM:f0}";
 
-
+            // TODO: Fix Invisible
+        }
+        static public void ResetGlobalOffsets()
+        {
+            GlobalOffsetX = 0;
+            GlobalOffsetY = 0;
+            GlobalScale = 1;
         }
     }
 }

@@ -5,10 +5,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace GIS
 {
@@ -19,7 +16,6 @@ namespace GIS
     {
         private bool _isLeftMouseButtonDown = false;
         private Point _leftMouseButtonDownPoint;
-        private Point _topLeftMapCanvasPoint = new Point(0, 0);
 
         internal static ObservableCollection<Layer> layersList = [];
         public MainWindow()
@@ -70,12 +66,10 @@ namespace GIS
 
                 ParseGeoJSON(newLayer, text);
 
-                Console.WriteLine(MapToCanvasTranslator.Bounds);
-
-
                 layersList.Add(newLayer);
-                newLayer.CreateAll();
                 newLayer.VisibilityChanged += OnLayerVisibilityChanged;
+
+                MapToCanvasTranslator.ResetGlobalOffsets();
                 Draw();
 
                 StatusTextBox.Text = "Добавлен новый слой";
@@ -121,17 +115,12 @@ namespace GIS
 
         private Feature ParseFeature(JsonElement root, ref GeoBounds bounds)
         {
-            GeoObject geo = ParseGeometry(root.GetProperty("geometry"));
+            GeoGraphicObject geo = GeoGraphicObject.Parse(root.GetProperty("geometry"));
             Dictionary<String, String> dict = ParseProperties(root.GetProperty("properties"));
             
             geo.GetBounds(ref bounds);
 
             return new Feature(geo, dict);
-        }
-
-        private GeoObject ParseGeometry(JsonElement root)
-        {
-            return GeoObject.Parse(root);
         }
 
         private Dictionary<String, String> ParseProperties(JsonElement root)
@@ -154,18 +143,20 @@ namespace GIS
             var currentMousePoint = e.GetPosition(MapCanvas);
             var offset = currentMousePoint - _leftMouseButtonDownPoint;
 
-            CoordinatesTextBox.Text = $"Координаты: {currentMousePoint.X - _topLeftMapCanvasPoint.X:f0}," +
-                $" {currentMousePoint.Y - _topLeftMapCanvasPoint.Y:f0}";  
+            CoordinatesTextBox.Text = $"Координаты: {currentMousePoint.X - MapToCanvasTranslator.GlobalOffsetX:f0}," +
+                $" {currentMousePoint.Y - MapToCanvasTranslator.GlobalOffsetY:f0}";  
 
             if (_isLeftMouseButtonDown && e.LeftButton == MouseButtonState.Pressed)
             {
+                MapToCanvasTranslator.GlobalOffsetX += offset.X;
+                MapToCanvasTranslator.GlobalOffsetY += offset.Y;
+
                 foreach (Layer layer in layersList)
                 {
-                    layer.UpdateAll(offset.X, offset.Y, 1);
+                    layer.UpdateAll();                
                 }
 
                 _leftMouseButtonDownPoint = currentMousePoint;
-                _topLeftMapCanvasPoint += offset;
             }
             else if (e.LeftButton != MouseButtonState.Pressed)
             {
@@ -185,19 +176,28 @@ namespace GIS
         }
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            var mousePos = e.GetPosition(MapCanvas);
+
+            double scaleDelta = e.Delta > 0 ? 1.1 : 1 / 1.1;
+
+            MapToCanvasTranslator.GlobalOffsetX =
+                mousePos.X - (mousePos.X - MapToCanvasTranslator.GlobalOffsetX) * scaleDelta;
+            MapToCanvasTranslator.GlobalOffsetY =
+                mousePos.Y - (mousePos.Y - MapToCanvasTranslator.GlobalOffsetY) * scaleDelta;
+            MapToCanvasTranslator.GlobalScale *= scaleDelta;
+
             foreach (Layer layer in layersList)
             {
-                var mousePos = e.GetPosition(MapCanvas);
-                layer.UpdateAll(-mousePos.X, -mousePos.Y, (1 + e.Delta * 0.001));
-                layer.UpdateAll(mousePos.X, mousePos.Y, 1);
-
+                layer.UpdateAll();
             }
+
             UpdateScale();
         }
 
         private void ZoomToLayer(Layer layer)
         {
             MapToCanvasTranslator.Bounds = layer.Bounds;
+            MapToCanvasTranslator.ResetGlobalOffsets();
             MapToCanvasTranslator.CalculateRatios();
             Draw();
         }
@@ -211,25 +211,23 @@ namespace GIS
         }
 
         #endregion Управление MapCanvas
-
+        // TODO: Починить Global Values 
         #region Рисование фигур
-        private void RecreateAllFigures()
-        {
-            MapCanvas.Children.Clear();
+        //private void RecreateAllFigures()
+        //{
+        //    MapCanvas.Children.Clear();
 
-            foreach (var layer in layersList)
-            {
-                foreach (var feature in layer.ObjectList)
-                {
-                    feature.Figure = null;
-                }
-                layer.CreateAll();
-            }
-        }
+        //    foreach (var layer in layersList)
+        //    {
+        //        foreach (var feature in layer.ObjectList)
+        //        {
+        //            feature.Figure = null;
+        //        }
+        //        layer.CreateAll();
+        //    }
+        //}
         private void Draw()
         {
-            RecreateAllFigures();
-
             foreach (var layer in layersList)
             {
                 if (layer.IsVisible)

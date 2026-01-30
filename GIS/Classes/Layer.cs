@@ -51,13 +51,13 @@ namespace GIS.Classes
         {
             return $"{Name}";
         }
-        public void CreateAll()
-        {
-            foreach (Feature feature in ObjectList)
-            {
-                feature.CreateFigure();
-            }
-        }
+        //public void CreateAll()
+        //{
+        //    foreach (Feature feature in ObjectList)
+        //    {
+        //        feature.CreateFigure();
+        //    }
+        //}
         public void DrawAll(Canvas canvas)
         {
             foreach (Feature feature in ObjectList)
@@ -65,11 +65,11 @@ namespace GIS.Classes
                 feature.DrawFigure(canvas);
             }
         }
-        public void UpdateAll(double offsetX, double offsetY, double scale)
+        public void UpdateAll()
         {
             foreach (Feature feature in ObjectList)
             {
-                feature.UpdateFigure(offsetX, offsetY, scale);
+                feature.UpdateFigure();
             }
         }
     }
