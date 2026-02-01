@@ -30,12 +30,47 @@
             <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat" MouseDoubleClick="LayerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" 
-                                    VerticalAlignment="Center"
-                                    Margin="0,0,5,0"/>
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0" 
+                                      IsChecked="{Binding IsVisible, Mode=TwoWay}" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,5,0"/>
+
+                            <TextBlock Grid.Column="1" 
+                                       Text="{Binding Name}" 
+                                       VerticalAlignment="Center"
+                                       Margin="5,0"/>
+
+
+                            <Button x:Name="LayerSettingsButton"
+                                    Grid.Column="2"
+                                    Tag="{Binding}"
+                                    Content="⚙"
+                                    FontSize="14"
+                                    Width="24"
+                                    Height="24"
+                                    ToolTip="Настройки слоя" 
+                                    HorizontalAlignment="Right" 
+                                    VerticalAlignment="Center" Click="LayerSettingsButton_Click"/>
+
+                            <Button x:Name="LayerTableButton"
+                                    Grid.Column="3"
+                                    Tag="{Binding}"
+                                    Content="📋"
+                                    FontSize="14"
+                                    Width="24"
+                                    Height="24"
+                                    ToolTip="Настройки слоя" 
+                                    HorizontalAlignment="Right" 
+                                    VerticalAlignment="Center" Click="LayerTableButton_Click"/>
+                        </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

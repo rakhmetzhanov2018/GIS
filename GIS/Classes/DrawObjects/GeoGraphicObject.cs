@@ -35,7 +35,10 @@ namespace GIS.Classes.DrawObjects
                 GraphicCoords.Add(graphicPoint);
             }
         }
-
+        public void SetVisibility(bool isVisible)
+        {
+            Figure.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
         public static GeoGraphicObject Parse(JsonElement root)
         {
             string? type = root.GetProperty("type").GetString();

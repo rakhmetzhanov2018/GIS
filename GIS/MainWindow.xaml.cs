@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace GIS
@@ -25,11 +26,6 @@ namespace GIS
             DataContext = this;
 
             LayerListBox.ItemsSource = layersList;
-
-            foreach (Layer layer in layersList)
-            {
-                layer.VisibilityChanged += OnLayerVisibilityChanged;
-            }
         }
 
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
@@ -67,7 +63,6 @@ namespace GIS
                 ParseGeoJSON(newLayer, text);
 
                 layersList.Add(newLayer);
-                newLayer.VisibilityChanged += OnLayerVisibilityChanged;
 
                 MapToCanvasTranslator.ResetGlobalOffsets();
                 Draw();
@@ -201,7 +196,6 @@ namespace GIS
             MapToCanvasTranslator.CalculateRatios();
             Draw();
         }
-
         private void LayerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (LayerListBox.SelectedItem is Layer layer)
@@ -211,29 +205,13 @@ namespace GIS
         }
 
         #endregion Управление MapCanvas
-        // TODO: Починить Global Values 
-        #region Рисование фигур
-        //private void RecreateAllFigures()
-        //{
-        //    MapCanvas.Children.Clear();
 
-        //    foreach (var layer in layersList)
-        //    {
-        //        foreach (var feature in layer.ObjectList)
-        //        {
-        //            feature.Figure = null;
-        //        }
-        //        layer.CreateAll();
-        //    }
-        //}
+        #region Рисование фигур
         private void Draw()
         {
             foreach (var layer in layersList)
             {
-                if (layer.IsVisible)
-                {
-                    layer.DrawAll(MapCanvas);
-                }
+                layer.DrawAll(MapCanvas);
             }
             UpdateScale();
             UpdateBoundsDisplay();
@@ -241,10 +219,7 @@ namespace GIS
 
         #endregion Рисование фигур
 
-        private void OnLayerVisibilityChanged(object sender, EventArgs e)
-        {
-            Draw();
-        }
+        #region Обновление статус-бара
         private void UpdateScale()
         {
             MapToCanvasTranslator.CanvasSize = new Size(MapCanvas.ActualWidth, MapCanvas.ActualHeight);
@@ -273,5 +248,33 @@ namespace GIS
             BoundsCenterTextBox.Text = $"Центр: {centerLon:F6}°; {centerLat:F6}°";
             BoundsSizeTextBox.Text = $"Размер: {widthKM:F1}×{heightKM:F1} км";
         }
+        #endregion Обновление статус-бара
+
+        #region Управление кнопками слоёв
+        private void LayerSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is Layer layer)
+            {
+                OpenLayerSettingWindow(layer);
+            }
+        }
+
+        private void LayerTableButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is Layer layer)
+            {
+                OpenLayerAttributesTableWindow(layer);
+            }
+        }
+        private void OpenLayerSettingWindow(Layer layer)
+        {
+
+        }
+        private void OpenLayerAttributesTableWindow(Layer layer)
+        {
+            var tableWindow = new LayerAttributesTableWindow(layer);
+            tableWindow.Show();
+        }
+        #endregion Управление кнопками слоёв
     }
 }
