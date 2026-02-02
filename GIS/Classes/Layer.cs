@@ -1,5 +1,6 @@
 ﻿using GIS.Classes.DrawObjects;
 using GIS.Classes.OtherObjects;
+using GIS.Classes.Styles;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,6 +15,7 @@ namespace GIS.Classes
     internal class Layer : INotifyPropertyChanged
     {
         private bool isVisible = true;
+        private LayerStyle layerStyle;
         public string Name { get; set; } = "Новый слой";
         public Boolean IsVisible
         { get => isVisible;
@@ -27,9 +29,38 @@ namespace GIS.Classes
                 }
             } 
         }
+        public LayerStyle LayerStyle
+        {
+            get => layerStyle;
+            set
+            {
+                if (layerStyle != value)
+                {
+                    layerStyle = value;
+                    layerStyle.PropertyChanged += OnStylePropertyChanged;
+                }
+            }
+        }
         public List<Feature> ObjectList { get; } = new();
         public GeoBounds Bounds { get; set; }
         public int ZIndex { get; set; } = 1;
+        public string GeoType
+        {
+            get
+            {
+                if (ObjectList.Count == 0)
+                {
+                    return "Empty";
+                }
+                return ObjectList.FirstOrDefault().Geometry switch
+                {
+                    GeoGraphicPoint => "Point",
+                    GeoGraphicLineString => "LineString",
+                    GeoGraphicPolygon => "Polygon",
+                    _ => throw new InvalidOperationException()
+                };
+            }
+        }
 
         public Layer() { }
         public Layer(string name, Boolean isVisible = true)
@@ -97,6 +128,14 @@ namespace GIS.Classes
             }
 
             return $"GeoGraphicPoint - {pointCount}, GeoGraphicLineString - {lineCount}, GeoGraphicPolygon - {polygonCount}";
+        }
+        public void OnStylePropertyChanged(object sender, PropertyChangedEventArgs e) 
+        {
+            foreach (Feature feature in ObjectList)
+            {
+                LayerStyle.ApplyToFeature(feature);
+                // TODO: Привязать стиль к изменеию стиля в настройках
+            }
         }
     }
 }

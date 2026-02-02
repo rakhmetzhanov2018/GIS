@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GIS.Classes
 {
-    internal struct GeoBounds
+    public struct GeoBounds
     {
         public double MinLon { get; set; }
         public double MaxLon { get; set; }

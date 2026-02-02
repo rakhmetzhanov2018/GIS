@@ -1,5 +1,6 @@
 ﻿using GIS.Classes;
 using GIS.Classes.DrawObjects;
+using GIS.Windows;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -268,7 +269,8 @@ namespace GIS
         }
         private void OpenLayerSettingWindow(Layer layer)
         {
-
+            var settingsWindow = new LayerSettingsWindow(layer);
+            settingsWindow.Show();
         }
         private void OpenLayerAttributesTableWindow(Layer layer)
         {

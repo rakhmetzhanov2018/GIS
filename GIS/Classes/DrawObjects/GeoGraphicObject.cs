@@ -5,11 +5,11 @@ using System.Windows.Shapes;
 
 namespace GIS.Classes.DrawObjects
 {
-    internal abstract class GeoGraphicObject
+    public abstract class GeoGraphicObject
     {
         public List<double[]> GeoCoords { get; set; } = new();
         public List<Point> GraphicCoords { get; set; } = new();
-        protected Shape? Figure { get; set; }
+        public Shape? Figure { get; protected set; }
 
         public abstract void CreateFigure();
         public void Draw(Canvas canvas)

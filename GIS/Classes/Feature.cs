@@ -7,7 +7,7 @@ using System.Windows.Shapes;
 
 namespace GIS.Classes.DrawObjects
 {
-    internal class Feature
+    public class Feature
     {
         public string Name { get; set; } = "Без названия";
         public Dictionary<String, String> props;
