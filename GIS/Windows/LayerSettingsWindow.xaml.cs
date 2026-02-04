@@ -1,4 +1,7 @@
 ﻿using GIS.Classes;
+using GIS.Classes.Factories;
+using GIS.Classes.Styles;
+using GIS.Classes.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,25 +18,35 @@ using System.Windows.Shapes;
 
 namespace GIS.Windows
 {
-    /// <summary>
+    /// <summary>-
     /// Логика взаимодействия для LayerSettingsWindow.xaml
     /// </summary>
     public partial class LayerSettingsWindow : Window
     {
         private Layer layer;
+        private LayerSettingsViewModel layerSettingsViewModel;
         internal LayerSettingsWindow(Layer layer)
         {
             InitializeComponent();
 
             this.layer = layer;
-            DataContext = layer;
+            layerSettingsViewModel = new(layer);
 
-            InitializeSettings();
+            DataContext = layerSettingsViewModel;
         }
 
-        private void InitializeSettings()
+        private void LayerSettingsApplyButton_Click(object sender, RoutedEventArgs e)
         {
-            
+            layerSettingsViewModel.ApplyChanges();
+
+            layer.ApplyStyleToAllFeatures();
+
+            DialogResult = true;
+        }
+
+        private void LayerSettingsCancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
         }
     }
 }

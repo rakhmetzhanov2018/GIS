@@ -39,6 +39,17 @@ namespace GIS.Classes.Styles
                 }
             }
         }
+        public PolygonStyle()
+        {
+
+        }
+        public PolygonStyle(PolygonStyle other)
+        {
+            Opacity = other.Opacity;
+            MainColor = other.MainColor;
+            StrokeThickness = other.StrokeThickness;
+            FillColor = other.FillColor;
+        }
 
         public override void ApplyToFeature(Feature feature)
         {
@@ -47,7 +58,7 @@ namespace GIS.Classes.Styles
                 polygon.Opacity = Opacity;
                 polygon.Stroke = new SolidColorBrush(MainColor);
                 polygon.StrokeThickness = StrokeThickness;
-                polygon.Fill = new SolidColorBrush(MainColor);
+                polygon.Fill = new SolidColorBrush(FillColor);
             }
         }
     }

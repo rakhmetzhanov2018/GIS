@@ -19,7 +19,7 @@ namespace GIS
         private bool _isLeftMouseButtonDown = false;
         private Point _leftMouseButtonDownPoint;
 
-        internal static ObservableCollection<Layer> layersList = [];
+        public static ObservableCollection<Layer> layersList = [];
         public MainWindow()
         {
             InitializeComponent();
@@ -58,7 +58,8 @@ namespace GIS
 
                 Layer newLayer = new()
                 {
-                    Name = System.IO.Path.GetFileName(filePath)
+                    Name = System.IO.Path.GetFileName(filePath),
+                    ZIndex = layersList.Count + 1
                 };
 
                 ParseGeoJSON(newLayer, text);
@@ -214,8 +215,17 @@ namespace GIS
             {
                 layer.DrawAll(MapCanvas);
             }
+            ApplyStylesForAllLayers();
             UpdateScale();
             UpdateBoundsDisplay();
+        }
+
+        private void ApplyStylesForAllLayers()
+        {
+            foreach (var layer in layersList)
+            {
+                layer.ApplyStyleToAllFeatures();
+            }
         }
 
         #endregion Рисование фигур
@@ -270,7 +280,7 @@ namespace GIS
         private void OpenLayerSettingWindow(Layer layer)
         {
             var settingsWindow = new LayerSettingsWindow(layer);
-            settingsWindow.Show();
+            settingsWindow.ShowDialog();
         }
         private void OpenLayerAttributesTableWindow(Layer layer)
         {
@@ -278,5 +288,13 @@ namespace GIS
             tableWindow.Show();
         }
         #endregion Управление кнопками слоёв
+
+        public void OnZIndexChanged()
+        {
+            MapCanvas.Children.Clear();
+
+            var orderedList = layersList.OrderBy(x => x.ZIndex).ToList();
+            layersList = new ObservableCollection<Layer>(orderedList);
+        }
     }
 }

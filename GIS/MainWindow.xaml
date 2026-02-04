@@ -36,6 +36,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <CheckBox Grid.Column="0" 
@@ -50,7 +52,7 @@
 
 
                             <Button x:Name="LayerSettingsButton"
-                                    Grid.Column="2"
+                                    Grid.Column="5"
                                     Tag="{Binding}"
                                     Content="⚙"
                                     FontSize="14"
@@ -61,7 +63,7 @@
                                     VerticalAlignment="Center" Click="LayerSettingsButton_Click"/>
 
                             <Button x:Name="LayerTableButton"
-                                    Grid.Column="3"
+                                    Grid.Column="4"
                                     Tag="{Binding}"
                                     Content="📋"
                                     FontSize="14"
@@ -70,6 +72,15 @@
                                     ToolTip="Настройки слоя" 
                                     HorizontalAlignment="Right" 
                                     VerticalAlignment="Center" Click="LayerTableButton_Click"/>
+
+                            <Button x:Name="LayerZIndexUp"
+                                    Grid.Column="2"
+                                    Content=" ↑ "/>
+                            <Button x:Name="LayerZIndexDown"
+                                    Grid.Column="3"
+                                    Content=" ↓ "/>
+                            <!-- TODO: Организовать Z-index -->
+                           
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

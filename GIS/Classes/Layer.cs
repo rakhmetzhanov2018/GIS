@@ -8,11 +8,12 @@ using System.Linq;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace GIS.Classes
 {
-    internal class Layer : INotifyPropertyChanged
+    public class Layer : INotifyPropertyChanged
     {
         private bool isVisible = true;
         private LayerStyle layerStyle;
@@ -62,7 +63,9 @@ namespace GIS.Classes
             }
         }
 
-        public Layer() { }
+        public Layer()
+        {
+        }
         public Layer(string name, Boolean isVisible = true)
         {
             Name = name;
@@ -131,10 +134,17 @@ namespace GIS.Classes
         }
         public void OnStylePropertyChanged(object sender, PropertyChangedEventArgs e) 
         {
+            ApplyStyleToAllFeatures();
+        }
+        public void ApplyStyleToAllFeatures()
+        {
+            if (layerStyle == null)
+            {
+                return;
+            }
             foreach (Feature feature in ObjectList)
             {
                 LayerStyle.ApplyToFeature(feature);
-                // TODO: Привязать стиль к изменеию стиля в настройках
             }
         }
     }

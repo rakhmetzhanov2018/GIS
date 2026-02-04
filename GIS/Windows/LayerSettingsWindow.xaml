@@ -4,58 +4,76 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS.Windows"
+        xmlns:converters="clr-namespace:GIS.Classes.Converters"
         mc:Ignorable="d"
         Title="LayerSettingsWindow" Height="450" Width="400">
-    <Grid>
-        <Grid Margin="20">
-            <Grid.Resources>
-                <Style TargetType="TextBlock">
-                    <Setter Property="FontFamily" Value="Arial"/>
-                    <Setter Property="FontSize" Value="14"/>
-                    <Setter Property="Margin" Value="0,0,0,10"/>
-                    <Setter Property="VerticalAlignment" Value="Center"/>
-                </Style>
+    
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </Window.Resources>
 
-                <Style TargetType="TextBox">
-                    <Setter Property="Margin" Value="10,0,0,10"/>
-                    <Setter Property="FontSize" Value="14"/>
-                </Style>
-            </Grid.Resources>
+    <Grid Margin="20">
+        <Grid.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Arial"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+            </Style>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            
-            
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Название слоя:"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}"/>
-            
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Видимость слоя:"/>
-            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding IsVisible, Mode=TwoWay}"/>
-            
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Цвет:"/>
-            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Color}"/>
+            <Style TargetType="TextBox">
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </Grid.Resources>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Размер точки:"/>
-            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PointSize}"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Ширина линии:"/>
-            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding StrokeSize}"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Цвет заполнения:"/>
-            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding FillColor}"/> 
-            
-        </Grid>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Название слоя:"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LayerName}"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Видимость слоя:"/>
+        <CheckBox Grid.Row="1" Grid.Column="1" Margin="5" IsChecked="{Binding IsLayerVisible}"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Прозрачность слоя:"/>
+        <Slider Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding NewStyle.Opacity}" Margin="5"/>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Цвет:"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding NewStyle.MainColor}"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Размер точки:"
+                   Visibility="{Binding IsPointStyle, Converter={StaticResource BoolToVisibility}}"/>
+        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding NewStyle.Size}"
+                 Visibility="{Binding IsPointStyle, Converter={StaticResource BoolToVisibility}}"/>
+
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Ширина линии:"
+                   Visibility="{Binding IsLineStringOrPolygonStyle, Converter={StaticResource BoolToVisibility}}"/>
+        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding NewStyle.StrokeThickness}"
+                 Visibility="{Binding IsLineStringOrPolygonStyle, Converter={StaticResource BoolToVisibility}}"/>
+
+        <TextBlock Grid.Row="6" Grid.Column="0" Text="Цвет заполнения:"
+                   Visibility="{Binding IsPolygonStyle, Converter={StaticResource BoolToVisibility}}"/>
+        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding NewStyle.FillColor}"
+                 Visibility="{Binding IsPolygonStyle, Converter={StaticResource BoolToVisibility}}"/>
+
+        <Button x:Name="LayerSettingsCancelButton" Grid.Row="7" Grid.Column="0" Content="Отменить" MinWidth="100" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="LayerSettingsCancelButton_Click"/>
+        <Button x:Name="LayerSettingsApplyButton" Grid.Row="7" Grid.Column="1" Content="Применить" MinWidth="100" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="LayerSettingsApplyButton_Click"/>
     </Grid>
 </Window>

@@ -25,6 +25,16 @@ namespace GIS.Classes.Styles
                 }
             }
         }
+        public PointStyle()
+        {
+
+        }
+        public PointStyle(PointStyle other)
+        {
+            Opacity = other.Opacity;
+            MainColor = other.MainColor;
+            Size = other.Size;
+        }
 
         public override void ApplyToFeature(Feature feature)
         {

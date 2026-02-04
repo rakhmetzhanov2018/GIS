@@ -26,6 +26,16 @@ namespace GIS.Classes.Styles
                 }
             }
         }
+        public LineStringStyle()
+        {
+
+        }
+        public LineStringStyle(LineStringStyle other)
+        {
+            Opacity = other.Opacity;
+            MainColor = other.MainColor;
+            strokeThickness = other.StrokeThickness;
+        }
         public override void ApplyToFeature(Feature feature)
         {
             if (feature.Geometry is GeoGraphicLineString lineString && lineString.Figure is Polyline polyline)

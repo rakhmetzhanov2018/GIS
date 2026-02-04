@@ -39,7 +39,7 @@ namespace GIS.Classes.Styles
 
         public abstract void ApplyToFeature(Feature feature);
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
