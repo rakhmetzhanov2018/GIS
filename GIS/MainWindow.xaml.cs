@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Shapes;
 
 namespace GIS
 {
@@ -58,8 +59,7 @@ namespace GIS
 
                 Layer newLayer = new()
                 {
-                    Name = System.IO.Path.GetFileName(filePath),
-                    ZIndex = layersList.Count + 1
+                    Name = System.IO.Path.GetFileName(filePath)
                 };
 
                 ParseGeoJSON(newLayer, text);
@@ -161,6 +161,8 @@ namespace GIS
                 MapCanvas.Cursor = Cursors.Arrow;
             }
 
+            UpdateBoundsDisplay();
+
         }
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -189,6 +191,7 @@ namespace GIS
             }
 
             UpdateScale();
+            UpdateBoundsDisplay();
         }
 
         private void ZoomToLayer(Layer layer)
@@ -238,7 +241,7 @@ namespace GIS
         }
         private void UpdateBoundsDisplay()
         {
-            const double KM_PER_DEGREE = 111.32;
+            //const double KM_PER_DEGREE = 111.32;
 
             if (MapToCanvasTranslator.Bounds.MinLon == double.MaxValue)
             {
@@ -247,17 +250,13 @@ namespace GIS
                 return;
             }
 
-            double centerLon = (MapToCanvasTranslator.Bounds.MinLon + MapToCanvasTranslator.Bounds.MaxLon) / 2;
-            double centerLat = (MapToCanvasTranslator.Bounds.MinLat + MapToCanvasTranslator.Bounds.MaxLat) / 2;
+            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(MapCanvas.ActualWidth / 2, MapCanvas.ActualHeight / 2);
 
-            double deltaLon = (MapToCanvasTranslator.Bounds.MaxLon - MapToCanvasTranslator.Bounds.MinLon);
-            double deltaLat = (MapToCanvasTranslator.Bounds.MaxLat - MapToCanvasTranslator.Bounds.MinLat);
+            //double widthKM = deltaLon * KM_PER_DEGREE;
+            //double heightKM = deltaLat * KM_PER_DEGREE * Math.Cos(centerLat * Math.PI / 180);
 
-            double widthKM = deltaLon * KM_PER_DEGREE;
-            double heightKM = deltaLat * KM_PER_DEGREE * Math.Cos(centerLat * Math.PI / 180);
-
-            BoundsCenterTextBox.Text = $"Центр: {centerLon:F6}°; {centerLat:F6}°";
-            BoundsSizeTextBox.Text = $"Размер: {widthKM:F1}×{heightKM:F1} км";
+            BoundsCenterTextBox.Text = $"Центр: {geoCoords[0]:F6}°; {geoCoords[1]:F6}°";
+            //BoundsSizeTextBox.Text = $"Размер: {widthKM:F1}×{heightKM:F1} км";
         }
         #endregion Обновление статус-бара
 
@@ -269,7 +268,6 @@ namespace GIS
                 OpenLayerSettingWindow(layer);
             }
         }
-
         private void LayerTableButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is Layer layer)
@@ -277,6 +275,7 @@ namespace GIS
                 OpenLayerAttributesTableWindow(layer);
             }
         }
+
         private void OpenLayerSettingWindow(Layer layer)
         {
             var settingsWindow = new LayerSettingsWindow(layer);
@@ -287,14 +286,67 @@ namespace GIS
             var tableWindow = new LayerAttributesTableWindow(layer);
             tableWindow.Show();
         }
+
+        private void LayerZIndexUp_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.CommandParameter is Layer layer)
+            {
+                int index = layersList.IndexOf(layer);
+
+                if (index > 0)
+                {
+                    layersList.Move(index, index - 1);
+                }
+
+                Draw();
+            }
+        }
+        private void LayerZIndexDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.CommandParameter is Layer layer)
+            {
+                int index = layersList.IndexOf(layer);
+
+                if (index < layersList.Count - 1)
+                {
+                    layersList.Move(index, index + 1);
+                }
+
+                Draw();
+            }
+        }
         #endregion Управление кнопками слоёв
 
-        public void OnZIndexChanged()
-        {
-            MapCanvas.Children.Clear();
 
-            var orderedList = layersList.OrderBy(x => x.ZIndex).ToList();
-            layersList = new ObservableCollection<Layer>(orderedList);
+
+        private void DeleteLayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (LayerListBox.SelectedItem is Layer selectedLayer)
+            {
+                var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{selectedLayer.Name}'?",
+                    "Удаление",
+                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+                
+                if (result == MessageBoxResult.Yes)
+                {
+                    DeleteLayer(selectedLayer);
+                }
+            }
+        }
+
+        private void DeleteLayer(Layer layer)
+        {
+            layersList.Remove(layer);
+
+            var toDelete = MapCanvas.Children.OfType<Shape>()
+                .Where(x => x.Tag is Layer layerTag && layerTag == layer).ToList();
+
+            foreach (var shape in  toDelete)
+            {
+                MapCanvas.Children.Remove(shape);
+            }
+
+            StatusTextBox.Text = $"Слой '{layer.Name}' удалён";
         }
     }
 }

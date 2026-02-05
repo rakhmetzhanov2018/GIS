@@ -44,7 +44,6 @@ namespace GIS.Classes
         }
         public List<Feature> ObjectList { get; } = new();
         public GeoBounds Bounds { get; set; }
-        public int ZIndex { get; set; } = 1;
         public string GeoType
         {
             get

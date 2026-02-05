@@ -24,13 +24,34 @@
             </Grid.RowDefinitions>
             
             <StackPanel Grid.Row="0" Grid.Column="0" Margin="10" Background="Wheat">
-                <Button Name="LoadFileButton" Margin="10" Width="Auto" Height="40" Content="Загрузить" FontSize="20" Click="LoadFileButton_Click"/>
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Margin" Value="10"/>
+                        <Setter Property="FontSize" Value="20"/>
+                        <Setter Property="Width" Value="Auto"/>
+                        <Setter Property="Height" Value="40"/>
+                    </Style>
+                </StackPanel.Resources>
+                <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
+                <Button Name="DeleteLayerButton" Content="Удалить слой" Click="DeleteLayerButton_Click" IsEnabled="{Binding ElementName=LayerListBox, Path=SelectedItem}"/>
             </StackPanel>
 
-            <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat" MouseDoubleClick="LayerListBox_MouseDoubleClick">
+            <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat" HorizontalContentAlignment="Stretch" MouseDoubleClick="LayerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid>
+                            <Grid.Resources>
+                                <Style TargetType="Button">
+                                    <Setter Property="FontSize" Value="14"/>
+                                    <Setter Property="Width" Value="24"/>
+                                    <Setter Property="Height" Value="24"/>
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                            </Grid.Resources>
+                            
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -50,37 +71,31 @@
                                        VerticalAlignment="Center"
                                        Margin="5,0"/>
 
+                            <Button x:Name="LayerZIndexUp"
+                                    Grid.Column="2"
+                                    Content=" ↑ " 
+                                    CommandParameter="{Binding}"
+                                    Click="LayerZIndexUp_Click"/>
 
-                            <Button x:Name="LayerSettingsButton"
-                                    Grid.Column="5"
-                                    Tag="{Binding}"
-                                    Content="⚙"
-                                    FontSize="14"
-                                    Width="24"
-                                    Height="24"
-                                    ToolTip="Настройки слоя" 
-                                    HorizontalAlignment="Right" 
-                                    VerticalAlignment="Center" Click="LayerSettingsButton_Click"/>
+                            <Button x:Name="LayerZIndexDown"
+                                    Grid.Column="3"
+                                    Content=" ↓ "
+                                    CommandParameter="{Binding}"
+                                    Click="LayerZIndexDown_Click"/>
 
                             <Button x:Name="LayerTableButton"
                                     Grid.Column="4"
                                     Tag="{Binding}"
                                     Content="📋"
-                                    FontSize="14"
-                                    Width="24"
-                                    Height="24"
                                     ToolTip="Настройки слоя" 
-                                    HorizontalAlignment="Right" 
-                                    VerticalAlignment="Center" Click="LayerTableButton_Click"/>
+                                    Click="LayerTableButton_Click"/>
 
-                            <Button x:Name="LayerZIndexUp"
-                                    Grid.Column="2"
-                                    Content=" ↑ "/>
-                            <Button x:Name="LayerZIndexDown"
-                                    Grid.Column="3"
-                                    Content=" ↓ "/>
-                            <!-- TODO: Организовать Z-index -->
-                           
+                            <Button x:Name="LayerSettingsButton"
+                                    Grid.Column="5"
+                                    Tag="{Binding}"
+                                    Content="⚙"
+                                    ToolTip="Настройки слоя"                                   
+                                    Click="LayerSettingsButton_Click"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

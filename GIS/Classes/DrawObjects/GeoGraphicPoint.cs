@@ -46,8 +46,8 @@ namespace GIS.Classes.DrawObjects
             double Xcoord = point.X * scale + offsetX;
             double Ycoord = point.Y * scale + offsetY;
 
-            Canvas.SetLeft(ellipse, Xcoord - 3);
-            Canvas.SetTop(ellipse, Ycoord - 3);
+            Canvas.SetLeft(ellipse, Xcoord - ellipse.Width / 2);
+            Canvas.SetTop(ellipse, Ycoord - ellipse.Height / 2);
         }
         
         public new static GeoGraphicPoint Parse(JsonElement root)

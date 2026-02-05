@@ -5,6 +5,7 @@ namespace GIS.Classes
 {
     internal static class MapToCanvasTranslator
     {
+        private const int EARTH_RADIUS_CM = 637100000;
         static public GeoBounds Bounds { get; set; } = new GeoBounds();
         static public Size CanvasSize { get; set; }
         static private double Ratio { get; set; }
@@ -24,8 +25,6 @@ namespace GIS.Classes
         }
         static public string GetScale()
         {
-            const int EARTH_RADIUS_CM = 637100000;
-
             double deltaLon = (Bounds.MaxLon - Bounds.MinLon) * Math.PI / 180;
             double Lat = (Bounds.MaxLat + Bounds.MinLat) / 2 * Math.PI / 180;
 
@@ -34,13 +33,21 @@ namespace GIS.Classes
             double d = 2 * EARTH_RADIUS_CM * 
                 Math.Asin(Math.Sqrt(sqSinLon * Math.Pow(Math.Cos(Lat), 2)));
 
-
             double pixelsPerCM = CanvasSize.Width / 96.0 * 2.54;
 
-            return $"1:{d / pixelsPerCM:f0}";
-
-            // TODO: Fix Invisible
+            return $"1:{d / pixelsPerCM / GlobalScale:f0}";
         }
+        static public double[] TranslateFromCanvasToGeo(double graphicX, double graphicY)
+        {
+            double X = (graphicX - GlobalOffsetX) / GlobalScale;
+            double Y = (graphicY - GlobalOffsetY) / GlobalScale;
+
+            double lon = X / Ratio + Bounds.MinLon;
+            double lat = Y / Ratio + Bounds.MinLat;
+
+            return [lon, lat];
+        }
+
         static public void ResetGlobalOffsets()
         {
             GlobalOffsetX = 0;
