@@ -1,5 +1,4 @@
 ﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.OtherObjects;
 using GIS.Classes.Styles;
 using System;
 using System.Collections.Generic;

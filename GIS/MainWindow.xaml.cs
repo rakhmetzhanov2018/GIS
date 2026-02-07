@@ -3,11 +3,14 @@ using GIS.Classes.DrawObjects;
 using GIS.Windows;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace GIS
@@ -17,6 +20,7 @@ namespace GIS
     /// </summary>
     public partial class MainWindow : Window
     {
+
         private bool _isLeftMouseButtonDown = false;
         private Point _leftMouseButtonDownPoint;
 
@@ -30,6 +34,7 @@ namespace GIS
             LayerListBox.ItemsSource = layersList;
         }
 
+        #region Управление слоями
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
         {
             OpenFileDialog openFileDialog = new()
@@ -76,6 +81,38 @@ namespace GIS
                 StatusTextBox.Text = "Отмена добавления нового слоя";
             }
         }
+
+        private void DeleteLayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (LayerListBox.SelectedItem is Layer selectedLayer)
+            {
+                var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{selectedLayer.Name}'?",
+                    "Удаление",
+                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    DeleteLayer(selectedLayer);
+                }
+            }
+        }
+
+        private void DeleteLayer(Layer layer)
+        {
+            layersList.Remove(layer);
+
+            var toDelete = MapCanvas.Children.OfType<Shape>()
+                .Where(x => x.Tag is Layer layerTag && layerTag == layer).ToList();
+
+            foreach (var shape in toDelete)
+            {
+                MapCanvas.Children.Remove(shape);
+            }
+
+            StatusTextBox.Text = $"Слой '{layer.Name}' удалён";
+        }
+
+        #endregion Управление слоями
 
         #region Парсинг GeoJSON
 
@@ -171,6 +208,19 @@ namespace GIS
                 _isLeftMouseButtonDown = true;
                 _leftMouseButtonDownPoint = e.GetPosition(MapCanvas);
                 MapCanvas.Cursor = Cursors.Hand;
+            }
+            var hit = VisualTreeHelper.HitTest(MapCanvas, e.GetPosition(MapCanvas));
+
+            if (hit.VisualHit is Shape shape && shape.Tag is Feature feature)
+            {
+                ClearSelection();
+
+                feature.IsSelected = true;
+                ShowFeatureInfo(feature);
+            }
+            else
+            {
+                ClearSelection();
             }
         }
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -318,35 +368,40 @@ namespace GIS
         #endregion Управление кнопками слоёв
 
 
-
-        private void DeleteLayerButton_Click(object sender, RoutedEventArgs e)
+        private void ClearSelection()
         {
-            if (LayerListBox.SelectedItem is Layer selectedLayer)
+            foreach (var layer in layersList)
             {
-                var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{selectedLayer.Name}'?",
-                    "Удаление",
-                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
-                
-                if (result == MessageBoxResult.Yes)
+                foreach (var feature in layer.ObjectList)
                 {
-                    DeleteLayer(selectedLayer);
+                    feature.IsSelected = false;
                 }
             }
+
+            FeaturePropertiesPopup.IsOpen = false;
+        }
+        
+
+        private void ShowFeatureInfo(Feature feature)
+        {
+            FeaturePropertiesPopup.PlacementTarget = MapCanvas;
+            FeaturePropertiesPopup.IsOpen = true;
+
+            FillTable(feature);
         }
 
-        private void DeleteLayer(Layer layer)
+        private void FillTable(Feature feature)
         {
-            layersList.Remove(layer);
+            FeaturePropertiesDataGrid.Items.Clear();
 
-            var toDelete = MapCanvas.Children.OfType<Shape>()
-                .Where(x => x.Tag is Layer layerTag && layerTag == layer).ToList();
-
-            foreach (var shape in  toDelete)
+            foreach (var prop in feature.props)
             {
-                MapCanvas.Children.Remove(shape);
-            }
-
-            StatusTextBox.Text = $"Слой '{layer.Name}' удалён";
+                FeaturePropertiesDataGrid.Items.Add(new
+                {
+                    Key = prop.Key,
+                    Value = prop.Value
+                });
+            }           
         }
     }
 }

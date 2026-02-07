@@ -124,6 +124,30 @@
             </StatusBarItem>
         </StatusBar>
 
-        <Canvas x:Name="MapCanvas" Grid.Row="0" Grid.Column="1" Margin="10" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True"/>
+        <Canvas x:Name="MapCanvas" Grid.Row="0" Grid.Column="1" Margin="10" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True">
+            <Popup x:Name="FeaturePropertiesPopup" Placement="Relative" AllowsTransparency="True" PopupAnimation="Fade">
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                    <TextBlock Text="Свойства фигуры" HorizontalAlignment="Center" FontSize="16"/>
+                    <DataGrid x:Name="FeaturePropertiesDataGrid" Margin="10" IsReadOnly="True" Background="Transparent"
+                              FontFamily="Arial" FontSize="16" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" GridLinesVisibility="Vertical" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Атрибут" Binding="{Binding Key}" Width="Auto"/>
+                            <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="Auto"/>
+                        </DataGrid.Columns>
+
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                        </DataGrid.Resources>
+                    </DataGrid>
+                </StackPanel>
+            </Popup>
+        </Canvas>
+
     </Grid>
 </Window>
