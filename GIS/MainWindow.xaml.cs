@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
+using System.Net.WebSockets;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Automation.Provider;
@@ -15,11 +16,23 @@ using System.Windows.Shapes;
 
 namespace GIS
 {
+    public enum MapMode
+    {
+        Move,
+        Select,
+        Draw
+    }
+
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MapMode currentMapMode = MapMode.Move;
+
+        private bool isSelecting = false;
+        private Rectangle selectionRectangle;
 
         private bool _isLeftMouseButtonDown = false;
         private Point _leftMouseButtonDownPoint;
@@ -32,6 +45,8 @@ namespace GIS
             DataContext = this;
 
             LayerListBox.ItemsSource = layersList;
+
+            CreateSelectionRectangle();
         }
 
         #region Управление слоями
@@ -172,13 +187,33 @@ namespace GIS
         #endregion Парсинг GeoJSON
 
         #region Управление MapCanvas
+
+        #region MapCanvas_MouseMove
         private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
         {
             var currentMousePoint = e.GetPosition(MapCanvas);
-            var offset = currentMousePoint - _leftMouseButtonDownPoint;
 
             CoordinatesTextBox.Text = $"Координаты: {currentMousePoint.X - MapToCanvasTranslator.GlobalOffsetX:f0}," +
-                $" {currentMousePoint.Y - MapToCanvasTranslator.GlobalOffsetY:f0}";  
+                $" {currentMousePoint.Y - MapToCanvasTranslator.GlobalOffsetY:f0}";
+
+            switch (currentMapMode)
+            {
+                case MapMode.Move:
+                    MoveMode_MouseMove(currentMousePoint, e);
+                    break;
+
+                case MapMode.Select:
+                    SelectMode_MouseMove(currentMousePoint, e);
+                    break;
+
+                case MapMode.Draw:
+                    DrawMode_MouseMove(currentMousePoint, e);
+                    break;
+            }
+        }
+        private void MoveMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
+        {
+            var offset = currentMousePoint - _leftMouseButtonDownPoint;
 
             if (_isLeftMouseButtonDown && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -187,7 +222,7 @@ namespace GIS
 
                 foreach (Layer layer in layersList)
                 {
-                    layer.UpdateAll();                
+                    layer.UpdateAll();
                 }
 
                 _leftMouseButtonDownPoint = currentMousePoint;
@@ -197,32 +232,78 @@ namespace GIS
                 _isLeftMouseButtonDown = false;
                 MapCanvas.Cursor = Cursors.Arrow;
             }
+        }
+        private void SelectMode_MouseMove(Point position, MouseEventArgs e)
+        {
+            if (!isSelecting) return;
 
-            UpdateBoundsDisplay();
+            if (_isLeftMouseButtonDown && e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateSelectionRectangle(position);
+            }
+            else
+            {
+                EndSelection(position);
+            }
+        }
+        private void DrawMode_MouseMove(Point position, MouseEventArgs e)
+        {
 
         }
+
+        #endregion MapCanvas_MouseMove
+
+        #region MapCanvas_MouseDown
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton != MouseButtonState.Pressed) return;
+
+            var position = e.GetPosition(MapCanvas);
+
+            switch (currentMapMode)
             {
-                _isLeftMouseButtonDown = true;
-                _leftMouseButtonDownPoint = e.GetPosition(MapCanvas);
-                MapCanvas.Cursor = Cursors.Hand;
+                case MapMode.Move:
+                    MoveMode_MouseDown(position);
+                    break;
+
+                case MapMode.Select:
+                    SelectMode_MouseDown(position);
+                    break;
+
+                case MapMode.Draw:
+                    DrawMode_MouseDown(position);
+                    break;
             }
-            var hit = VisualTreeHelper.HitTest(MapCanvas, e.GetPosition(MapCanvas));
+        }
+        private void MoveMode_MouseDown(Point position)
+        {
+            _isLeftMouseButtonDown = true;
+            _leftMouseButtonDownPoint = position;
+            MapCanvas.Cursor = Cursors.Hand;
+        }
+        private void SelectMode_MouseDown(Point position)
+        {
+            var hit = VisualTreeHelper.HitTest(MapCanvas, position);
 
             if (hit.VisualHit is Shape shape && shape.Tag is Feature feature)
             {
                 ClearSelection();
-
                 feature.IsSelected = true;
                 ShowFeatureInfo(feature);
             }
             else
             {
                 ClearSelection();
+                StartSelection(position);
             }
         }
+        private void DrawMode_MouseDown(Point position)
+        {
+
+        }
+
+        #endregion MapCanvas_MouseDown
+
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             var mousePos = e.GetPosition(MapCanvas);
@@ -243,7 +324,6 @@ namespace GIS
             UpdateScale();
             UpdateBoundsDisplay();
         }
-
         private void ZoomToLayer(Layer layer)
         {
             MapToCanvasTranslator.Bounds = layer.Bounds;
@@ -260,6 +340,100 @@ namespace GIS
         }
 
         #endregion Управление MapCanvas
+
+        #region Выделение фигур прямоугольником
+
+        private void CreateSelectionRectangle()
+        {
+            selectionRectangle = new Rectangle
+            {
+                Stroke = Brushes.Gray,
+                StrokeThickness = 2,
+                StrokeDashArray = new DoubleCollection { 4, 2 },
+                Fill = new SolidColorBrush(Color.FromArgb(40, 30, 144, 255)),
+                IsHitTestVisible = false,
+                Visibility = Visibility.Collapsed
+            };
+
+            MapCanvas.Children.Add(selectionRectangle);
+            Canvas.SetZIndex(selectionRectangle, 100);
+        }
+
+        private void StartSelection(Point startPoint)
+        {
+            isSelecting = true;
+            _isLeftMouseButtonDown = true;
+            _leftMouseButtonDownPoint = startPoint;
+
+            Canvas.SetLeft(selectionRectangle, startPoint.X);
+            Canvas.SetTop(selectionRectangle, startPoint.Y);
+
+            selectionRectangle.Width = 0;
+            selectionRectangle.Height = 0;
+
+            selectionRectangle.Visibility = Visibility.Visible;
+        }
+        private void UpdateSelectionRectangle(Point currentPoint)
+        {
+            if (!isSelecting) return;
+
+            var width = Math.Abs(currentPoint.X - _leftMouseButtonDownPoint.X);
+            var height = Math.Abs(currentPoint.Y - _leftMouseButtonDownPoint.Y);
+
+            Canvas.SetLeft(selectionRectangle, Math.Min(currentPoint.X, _leftMouseButtonDownPoint.X));
+            Canvas.SetTop(selectionRectangle, Math.Min(currentPoint.Y, _leftMouseButtonDownPoint.Y));
+
+            selectionRectangle.Width = width;
+            selectionRectangle.Height = height;
+        }
+        private void EndSelection(Point endPoint)
+        {
+            isSelecting = false;
+            _isLeftMouseButtonDown = false;
+
+            selectionRectangle.Visibility = Visibility.Collapsed;
+
+            FindSelectedFeatures();
+        }
+        private void FindSelectedFeatures()
+        {
+            List<Feature> selectedFeatures = new List<Feature>();
+
+            foreach (Layer layer in layersList)
+            {
+                foreach (Feature feature in layer.ObjectList)
+                {
+                    if (IsFeatureInRectangle(feature, selectionRectangle))
+                    {
+                        selectedFeatures.Add(feature);
+                        feature.IsSelected = true;
+                    }
+                }
+            }
+        }
+
+        private bool IsFeatureInRectangle(Feature feature, Rectangle rectangle)
+        {
+            if (feature.Geometry.Figure is not Shape figure) 
+                return false;
+
+            Rect selectionArea = new Rect
+            {
+                X = Canvas.GetLeft(rectangle),
+                Y = Canvas.GetTop(rectangle),
+                Width = rectangle.Width,
+                Height = rectangle.Height
+            };
+            return false;
+            //return feature.Geometry switch
+            //{
+            //    GeoGraphicPoint => selectionArea.Contains()
+            //    GeoGraphicLineString =>
+            //    GeoGraphicPolygon =>
+            //    _ => false
+            //};
+        }
+        #endregion Выделение фигур прямоугольником
 
         #region Рисование фигур
         private void Draw()
@@ -378,14 +552,13 @@ namespace GIS
                 }
             }
 
-            FeaturePropertiesPopup.IsOpen = false;
+            FeaturePropertiesGrid.Visibility = Visibility.Hidden;
         }
         
 
         private void ShowFeatureInfo(Feature feature)
         {
-            FeaturePropertiesPopup.PlacementTarget = MapCanvas;
-            FeaturePropertiesPopup.IsOpen = true;
+            FeaturePropertiesGrid.Visibility = Visibility.Visible;
 
             FillTable(feature);
         }
@@ -402,6 +575,50 @@ namespace GIS
                     Value = prop.Value
                 });
             }           
+        }
+
+        private void MapCanvas_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Up:
+                    MapToCanvasTranslator.GlobalOffsetY += 5;
+                    break;
+                case Key.Down:
+                    MapToCanvasTranslator.GlobalOffsetY -= 5;
+                    break;
+                case Key.Right:
+                    MapToCanvasTranslator.GlobalOffsetY += 5;
+                    break;
+                case Key.Left:
+                    MapToCanvasTranslator.GlobalOffsetY -= 5;
+                    break;
+                default:
+                    return;
+            }
+
+            foreach (Layer layer in layersList)
+            {
+                layer.UpdateAll();
+            }
+            UpdateBoundsDisplay();
+        }
+
+        private void MapModeRadioButton_Click(object sender, EventArgs e)
+        {
+            if (sender is RadioButton radioButton)
+            {
+                var mode = radioButton.Tag.ToString();
+
+                currentMapMode = mode switch
+                {
+                    "Move" => MapMode.Move,
+                    "Select" => MapMode.Select,
+                    "Draw" => MapMode.Draw,
+                    _ => throw new NotImplementedException()
+                };
+
+            } 
         }
     }
 }

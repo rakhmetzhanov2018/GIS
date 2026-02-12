@@ -1,0 +1,106 @@
+{
+  "type": "FeatureCollection",
+  "name": "Растительность",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 301,
+        "layer": "vegetation",
+        "name": "Березовая роща",
+        "type": "forest",
+        "species": "береза",
+        "color": "#228B22",
+        "density": "средняя"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6250, 55.7560],
+          [37.6280, 55.7560],
+          [37.6280, 55.7580],
+          [37.6250, 55.7580],
+          [37.6250, 55.7560]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 302,
+        "layer": "vegetation",
+        "name": "Фруктовый сад",
+        "type": "orchard",
+        "species": "яблоня",
+        "color": "#32CD32"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6190, 55.7570],
+          [37.6205, 55.7570],
+          [37.6205, 55.7580],
+          [37.6190, 55.7580],
+          [37.6190, 55.7570]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 303,
+        "layer": "vegetation",
+        "name": "Огород",
+        "type": "field",
+        "crop": "картофель",
+        "color": "#9ACD32"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6175, 55.7530],
+          [37.6190, 55.7530],
+          [37.6190, 55.7540],
+          [37.6175, 55.7540],
+          [37.6175, 55.7530]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 304,
+        "layer": "vegetation",
+        "name": "Старый дуб",
+        "type": "tree",
+        "species": "дуб",
+        "age": 150,
+        "color": "#2E8B57"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [37.6240, 55.7555]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 305,
+        "layer": "vegetation",
+        "name": "Луг с цветами",
+        "type": "meadow",
+        "color": "#7CFC00"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6100, 55.7510],
+          [37.6150, 55.7510],
+          [37.6150, 55.7530],
+          [37.6100, 55.7530],
+          [37.6100, 55.7510]
+        ]]
+      }
+    }
+  ]
+}

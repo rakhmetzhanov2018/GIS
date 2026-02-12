@@ -1,0 +1,147 @@
+{
+  "type": "FeatureCollection",
+  "name": "Здания деревни",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "layer": "buildings",
+        "name": "Жилой дом №1",
+        "type": "residential",
+        "color": "#F4A460",
+        "floors": 1,
+        "material": "wood"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6150, 55.7550],
+          [37.6160, 55.7550],
+          [37.6160, 55.7560],
+          [37.6150, 55.7560],
+          [37.6150, 55.7550]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2,
+        "layer": "buildings",
+        "name": "Жилой дом №2 с сараем",
+        "type": "residential",
+        "color": "#DEB887",
+        "floors": 2,
+        "material": "brick"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6170, 55.7545],
+          [37.6185, 55.7545],
+          [37.6185, 55.7560],
+          [37.6170, 55.7560],
+          [37.6170, 55.7545]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3,
+        "layer": "buildings",
+        "name": "Магазин",
+        "type": "commercial",
+        "color": "#CD853F",
+        "floors": 1,
+        "material": "brick"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6190, 55.7555],
+          [37.6200, 55.7555],
+          [37.6200, 55.7563],
+          [37.6190, 55.7563],
+          [37.6190, 55.7555]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 4,
+        "layer": "buildings",
+        "name": "Клуб",
+        "type": "public",
+        "color": "#BC8F8F",
+        "floors": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6130, 55.7540],
+          [37.6145, 55.7540],
+          [37.6145, 55.7550],
+          [37.6130, 55.7550],
+          [37.6130, 55.7540]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 5,
+        "layer": "buildings",
+        "name": "Колодец",
+        "type": "infrastructure",
+        "color": "#708090"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [37.6165, 55.7565]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 6,
+        "layer": "buildings",
+        "name": "Ферма",
+        "type": "agricultural",
+        "color": "#8B4513"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6210, 55.7530],
+          [37.6230, 55.7530],
+          [37.6230, 55.7545],
+          [37.6210, 55.7545],
+          [37.6210, 55.7530]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 7,
+        "layer": "buildings",
+        "name": "Баня",
+        "type": "sauna",
+        "color": "#A0522D"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.6140, 55.7570],
+          [37.6148, 55.7570],
+          [37.6148, 55.7575],
+          [37.6140, 55.7575],
+          [37.6140, 55.7570]
+        ]]
+      }
+    }
+  ]
+}

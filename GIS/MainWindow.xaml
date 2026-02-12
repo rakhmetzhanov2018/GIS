@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS"
         mc:Ignorable="d"
-        Title="GIS" Height="720" Width="1280">
+        Title="GIS" Height="768" Width="1366">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20*"/>
@@ -34,6 +34,12 @@
                 </StackPanel.Resources>
                 <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
                 <Button Name="DeleteLayerButton" Content="Удалить слой" Click="DeleteLayerButton_Click" IsEnabled="{Binding ElementName=LayerListBox, Path=SelectedItem}"/>
+
+                <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
+                    <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
+                    <RadioButton Content="SELECT" Click="MapModeRadioButton_Click" Tag="Select"/>
+                    <RadioButton Content="DRAW" Click="MapModeRadioButton_Click" Tag="Draw"/>
+                </StackPanel>
             </StackPanel>
 
             <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat" HorizontalContentAlignment="Stretch" MouseDoubleClick="LayerListBox_MouseDoubleClick">
@@ -123,13 +129,18 @@
                 <TextBlock x:Name="BoundsSizeTextBox" Text="Границ пока нет"/>
             </StatusBarItem>
         </StatusBar>
-
-        <Canvas x:Name="MapCanvas" Grid.Row="0" Grid.Column="1" Margin="10" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True">
-            <Popup x:Name="FeaturePropertiesPopup" Placement="Relative" AllowsTransparency="True" PopupAnimation="Fade">
-                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom">
+        
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Canvas x:Name="MapCanvas" Margin="10" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown"/>
+            
+            <Grid x:Name="FeaturePropertiesGrid" Visibility="Hidden">
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="White">
                     <TextBlock Text="Свойства фигуры" HorizontalAlignment="Center" FontSize="16"/>
-                    <DataGrid x:Name="FeaturePropertiesDataGrid" Margin="10" IsReadOnly="True" Background="Transparent"
-                              FontFamily="Arial" FontSize="16" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" GridLinesVisibility="Vertical" HeadersVisibility="Column">
+                    <DataGrid x:Name="FeaturePropertiesDataGrid" Margin="10" IsReadOnly="True" Background="Transparent" BorderThickness="0"
+                              FontFamily="Arial" FontSize="16" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" 
+                              CanUserSortColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" 
+                              GridLinesVisibility="None" HeadersVisibility="Column">
+                        
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Атрибут" Binding="{Binding Key}" Width="Auto"/>
                             <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="Auto"/>
@@ -138,6 +149,7 @@
                         <DataGrid.Resources>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="MinHeight" Value="30"/>
                             </Style>
 
                             <Style TargetType="DataGridColumnHeader">
@@ -146,8 +158,8 @@
                         </DataGrid.Resources>
                     </DataGrid>
                 </StackPanel>
-            </Popup>
-        </Canvas>
+            </Grid>
+        </Grid>
 
     </Grid>
 </Window>
