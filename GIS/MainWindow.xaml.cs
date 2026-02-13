@@ -241,10 +241,6 @@ namespace GIS
             {
                 UpdateSelectionRectangle(position);
             }
-            else
-            {
-                EndSelection(position);
-            }
         }
         private void DrawMode_MouseMove(Point position, MouseEventArgs e)
         {
@@ -399,11 +395,19 @@ namespace GIS
         {
             List<Feature> selectedFeatures = new List<Feature>();
 
+            Rect selectionArea = new Rect
+            {
+                X = Canvas.GetLeft(selectionRectangle),
+                Y = Canvas.GetTop(selectionRectangle),
+                Width = selectionRectangle.Width,
+                Height = selectionRectangle.Height
+            };
+
             foreach (Layer layer in layersList)
             {
                 foreach (Feature feature in layer.ObjectList)
                 {
-                    if (IsFeatureInRectangle(feature, selectionRectangle))
+                    if (IsFigureInArea(feature.Geometry.Figure, selectionArea))
                     {
                         selectedFeatures.Add(feature);
                         feature.IsSelected = true;
@@ -412,27 +416,14 @@ namespace GIS
             }
         }
 
-        private bool IsFeatureInRectangle(Feature feature, Rectangle rectangle)
+        private bool IsFigureInArea(Shape figure, Rect area)
         {
-            if (feature.Geometry.Figure is not Shape figure) 
-                return false;
+            RectangleGeometry rectGeo = new RectangleGeometry(area);
+            Geometry figureGeo = figure.RenderedGeometry;
 
-            Rect selectionArea = new Rect
-            {
-                X = Canvas.GetLeft(rectangle),
-                Y = Canvas.GetTop(rectangle),
-                Width = rectangle.Width,
-                Height = rectangle.Height
-            };
-            return false;
-            //return feature.Geometry switch
-            //{
-            //    GeoGraphicPoint => selectionArea.Contains()
-            //    GeoGraphicLineString =>
-            //    GeoGraphicPolygon =>
-            //    _ => false
-            //};
+            return rectGeo.FillContainsWithDetail(figureGeo) != IntersectionDetail.Empty;
         }
+
         #endregion Выделение фигур прямоугольником
 
         #region Рисование фигур
@@ -619,6 +610,14 @@ namespace GIS
                 };
 
             } 
+        }
+
+        private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (currentMapMode == MapMode.Select && e.LeftButton == MouseButtonState.Released)
+            {
+                EndSelection(e.GetPosition(MapCanvas));
+            }
         }
     }
 }
