@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS"
+        xmlns:classes="clr-namespace:GIS.Classes"
         mc:Ignorable="d"
         Title="GIS" Height="768" Width="1366">
     <Grid>
@@ -33,7 +34,7 @@
                     </Style>
                 </StackPanel.Resources>
                 <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
-                <Button Name="DeleteLayerButton" Content="Удалить слой" Click="DeleteLayerButton_Click" IsEnabled="{Binding ElementName=LayerListBox, Path=SelectedItem}"/>
+                <Button Name="DeleteLayerButton" Content="Удалить слой" Click="DeleteLayerButton_Click"/>
 
                 <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
                     <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
@@ -42,25 +43,32 @@
                 </StackPanel>
             </StackPanel>
 
-            <ListBox x:Name="LayerListBox" Grid.Row="1" Grid.Column="0" Margin="10" Background="Wheat" HorizontalContentAlignment="Stretch" MouseDoubleClick="LayerListBox_MouseDoubleClick">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.Resources>
-                                <Style TargetType="Button">
-                                    <Setter Property="FontSize" Value="14"/>
-                                    <Setter Property="Width" Value="24"/>
-                                    <Setter Property="Height" Value="24"/>
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="BorderThickness" Value="0"/>
-                                    <Setter Property="Background" Value="Transparent"/>
-                                </Style>
-                            </Grid.Resources>
-                            
+            <TreeView x:Name="LayerTreeView" Grid.Row="1" Margin="10" Background="Wheat" Padding="0"
+                       HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" MouseDoubleClick="LayerListBox_MouseDoubleClick" KeyDown="LayerListBox_KeyDown">
+                
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="TreeViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                
+                <TreeView.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="Width" Value="24"/>
+                        <Setter Property="Height" Value="24"/>
+                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+
+                    <HierarchicalDataTemplate DataType="{x:Type classes:Layer}" ItemsSource="{Binding ObjectList}">
+                        <Border HorizontalAlignment="Stretch" Background="Transparent">
+                        <Grid HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -103,9 +111,23 @@
                                     ToolTip="Настройки слоя"                                   
                                     Click="LayerSettingsButton_Click"/>
                         </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                        </Border>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type classes:Feature}">
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+
+                            <Button Grid.Column="1" Content="⚙"/>
+                        </Grid>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+            </TreeView>
         </Grid>
 
         <StatusBar Grid.Row="1" Grid.Column="1">

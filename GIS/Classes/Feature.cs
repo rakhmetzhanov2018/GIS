@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using GIS.Classes.DrawObjects;
+using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
@@ -6,7 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
-namespace GIS.Classes.DrawObjects
+namespace GIS.Classes
 {
     public class Feature
     {
@@ -52,7 +53,7 @@ namespace GIS.Classes.DrawObjects
                 shape.Effect = new DropShadowEffect
                 {
                     Color = Colors.DarkRed,
-                    BlurRadius = 10
+                    BlurRadius = 5
                 };
             }
             else

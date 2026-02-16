@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -44,7 +45,7 @@ namespace GIS
 
             DataContext = this;
 
-            LayerListBox.ItemsSource = layersList;
+            LayerTreeView.ItemsSource = layersList;
 
             CreateSelectionRectangle();
         }
@@ -99,7 +100,7 @@ namespace GIS
 
         private void DeleteLayerButton_Click(object sender, RoutedEventArgs e)
         {
-            if (LayerListBox.SelectedItem is Layer selectedLayer)
+            if (LayerTreeView.SelectedItem is Layer selectedLayer)
             {
                 var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{selectedLayer.Name}'?",
                     "Удаление",
@@ -110,21 +111,6 @@ namespace GIS
                     DeleteLayer(selectedLayer);
                 }
             }
-        }
-
-        private void DeleteLayer(Layer layer)
-        {
-            layersList.Remove(layer);
-
-            var toDelete = MapCanvas.Children.OfType<Shape>()
-                .Where(x => x.Tag is Layer layerTag && layerTag == layer).ToList();
-
-            foreach (var shape in toDelete)
-            {
-                MapCanvas.Children.Remove(shape);
-            }
-
-            StatusTextBox.Text = $"Слой '{layer.Name}' удалён";
         }
 
         #endregion Управление слоями
@@ -329,7 +315,7 @@ namespace GIS
         }
         private void LayerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (LayerListBox.SelectedItem is Layer layer)
+            if (LayerTreeView.SelectedItem is Layer layer)
             {
                 ZoomToLayer(layer);
             }
@@ -418,6 +404,12 @@ namespace GIS
 
         private bool IsFigureInArea(Shape figure, Rect area)
         {
+            if (figure is Ellipse ellipse)
+            {
+                return area.Contains(Canvas.GetLeft(ellipse) + ellipse.Width / 2, 
+                                     Canvas.GetTop(ellipse) + ellipse.Height / 2);
+            }
+
             RectangleGeometry rectGeo = new RectangleGeometry(area);
             Geometry figureGeo = figure.RenderedGeometry;
 
@@ -618,6 +610,66 @@ namespace GIS
             {
                 EndSelection(e.GetPosition(MapCanvas));
             }
+        }
+
+        private void LayerListBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete)
+            {
+                if (LayerTreeView.SelectedItem is Layer layer)
+                {
+                    var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{layer.Name}'?",
+                        "Удаление",
+                        MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+                    
+                    if (result == MessageBoxResult.Yes)
+                        DeleteLayer(layer);
+                }
+                else if (LayerTreeView.SelectedItem is Feature feature)
+                {
+                    var result = MessageBox.Show($"Вы уверели что хотите удалить объект '{feature.Name}'?",
+                        "Удаление",
+                        MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+                    if (result == MessageBoxResult.Yes)
+                        DeleteFeature(feature);
+                }
+            }
+        }
+
+        private void DeleteFeature(Feature selectedItem)
+        {
+            var layer = FindLayerByFeature(selectedItem);
+
+            layer.DeleteObject(selectedItem);
+            MapCanvas.Children.Remove(selectedItem.Geometry.Figure);
+
+            CollectionViewSource.GetDefaultView(LayerTreeView.ItemsSource).Refresh();
+
+            StatusTextBox.Text = $"Объект '{selectedItem.Name}' из слоя '{layer.Name}' удалён";
+        }
+
+
+        private void DeleteLayer(Layer layer)
+        {
+            layersList.Remove(layer);
+
+            foreach (var shape in layer.ObjectList)
+            {
+                MapCanvas.Children.Remove(shape.Geometry.Figure);
+            }
+
+            StatusTextBox.Text = $"Слой '{layer.Name}' удалён";
+        }
+
+        private Layer FindLayerByFeature(Feature feature)
+        {
+            foreach (Layer layer in layersList)
+            {
+                if (layer.ObjectList.Contains(feature))
+                    return layer;
+            }
+            throw new Exception("Попытка удалить уже удалённый объект.");
         }
     }
 }
