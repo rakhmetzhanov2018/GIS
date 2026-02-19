@@ -4,10 +4,8 @@ using GIS.Windows;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Automation.Provider;
@@ -32,16 +30,10 @@ namespace GIS
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Layer tempLayer;
-
         private MapMode currentMapMode = MapMode.Move;
-        private string currentDrawMode = "Dot";
 
         private bool isSelecting = false;
         private Rectangle selectionRectangle;
-
-        private bool isDrawingLines = false;
-        private Line drawingLine;
 
         private bool _isLeftMouseButtonDown = false;
         private Point _leftMouseButtonDownPoint;
@@ -56,10 +48,6 @@ namespace GIS
             LayerTreeView.ItemsSource = layersList;
 
             CreateSelectionRectangle();
-            CreateDrawingLine();
-
-            tempLayer = new Layer("ВременныйСлой");
-            layersList.Add(tempLayer);
         }
 
         #region Управление слоями
@@ -231,21 +219,18 @@ namespace GIS
                 MapCanvas.Cursor = Cursors.Arrow;
             }
         }
-        private void SelectMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
+        private void SelectMode_MouseMove(Point position, MouseEventArgs e)
         {
             if (!isSelecting) return;
 
             if (_isLeftMouseButtonDown && e.LeftButton == MouseButtonState.Pressed)
             {
-                UpdateSelectionRectangle(currentMousePoint);
+                UpdateSelectionRectangle(position);
             }
         }
-        private void DrawMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
+        private void DrawMode_MouseMove(Point position, MouseEventArgs e)
         {
-            if (isDrawingLines)
-            {
-                UpdateDrawingLine(currentMousePoint);
-            }
+
         }
 
         #endregion MapCanvas_MouseMove
@@ -254,8 +239,6 @@ namespace GIS
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed) return;
-
-            MapCanvas.Focus();
 
             var position = e.GetPosition(MapCanvas);
 
@@ -298,20 +281,7 @@ namespace GIS
         }
         private void DrawMode_MouseDown(Point position)
         {
-            switch (currentDrawMode)
-            {
-                case "Dot":
-                    DrawDot(position);
-                    break;
 
-                case "Line":
-                    DrawLine(position);
-                    break;
-
-                case "Polygon":
-                    // StartDrawPolygon(position);
-                    break;
-            }
         }
 
         #endregion MapCanvas_MouseDown
@@ -351,14 +321,6 @@ namespace GIS
             }
         }
 
-        private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            if (currentMapMode == MapMode.Select && e.LeftButton == MouseButtonState.Released)
-            {
-                EndSelection(e.GetPosition(MapCanvas));
-            }
-        }
-
         #endregion Управление MapCanvas
 
         #region Выделение фигур прямоугольником
@@ -378,6 +340,7 @@ namespace GIS
             MapCanvas.Children.Add(selectionRectangle);
             Canvas.SetZIndex(selectionRectangle, 100);
         }
+
         private void StartSelection(Point startPoint)
         {
             isSelecting = true;
@@ -438,6 +401,7 @@ namespace GIS
                 }
             }
         }
+
         private bool IsFigureInArea(Shape figure, Rect area)
         {
             if (figure is Ellipse ellipse)
@@ -454,7 +418,7 @@ namespace GIS
 
         #endregion Выделение фигур прямоугольником
 
-        #region Отрисовка фигур
+        #region Рисование фигур
         private void Draw()
         {
             foreach (var layer in layersList)
@@ -474,7 +438,7 @@ namespace GIS
             }
         }
 
-        #endregion Отрисовка фигур
+        #endregion Рисование фигур
 
         #region Обновление статус-бара
         private void UpdateScale()
@@ -560,7 +524,7 @@ namespace GIS
         }
         #endregion Управление кнопками слоёв
 
-        #region FeaturePropertiesDataGrid
+
         private void ClearSelection()
         {
             foreach (var layer in layersList)
@@ -573,6 +537,8 @@ namespace GIS
 
             FeaturePropertiesGrid.Visibility = Visibility.Hidden;
         }
+        
+
         private void ShowFeatureInfo(Feature feature)
         {
             FeaturePropertiesGrid.Visibility = Visibility.Visible;
@@ -593,9 +559,7 @@ namespace GIS
                 });
             }           
         }
-        #endregion FeaturePropertiesDataGrid
 
-        #region Экспериментальные/временные функции
         private void MapCanvas_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
@@ -612,10 +576,6 @@ namespace GIS
                 case Key.Left:
                     MapToCanvasTranslator.GlobalOffsetY -= 5;
                     break;
-                case Key.Escape:
-                    if (isDrawingLines)
-                        EndDrawingLine();
-                    break;
                 default:
                     return;
             }
@@ -626,6 +586,7 @@ namespace GIS
             }
             UpdateBoundsDisplay();
         }
+
         private void MapModeRadioButton_Click(object sender, EventArgs e)
         {
             if (sender is RadioButton radioButton)
@@ -642,16 +603,15 @@ namespace GIS
 
             } 
         }
-        private void DrawModeRadioButton_Click(object sender, EventArgs e)
+
+        private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (sender is RadioButton radioButton)
+            if (currentMapMode == MapMode.Select && e.LeftButton == MouseButtonState.Released)
             {
-                currentDrawMode = radioButton.Tag.ToString();
+                EndSelection(e.GetPosition(MapCanvas));
             }
         }
-        #endregion Экспериментальные/временные функции
 
-        #region Функции удаления слоя/объекта
         private void LayerListBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Delete)
@@ -710,74 +670,6 @@ namespace GIS
                     return layer;
             }
             throw new Exception("Попытка удалить уже удалённый объект.");
-        }
-
-        #endregion Функции удаления слоя/объекта
-
-        private void DrawDot(Point position)
-        {
-            var ellipse = new Ellipse
-            {
-                Stroke = Brushes.Black,
-                StrokeThickness = 4,
-                Width = 6,
-                Height = 6
-            };
-
-            Canvas.SetLeft(ellipse, position.X - 3);
-            Canvas.SetTop(ellipse, position.Y - 3);
-            MapCanvas.Children.Add(ellipse);
-        } 
-
-        private void DrawLine(Point position)
-        {
-            DrawDot(position);
-
-            if (!isDrawingLines)
-            {
-                isDrawingLines = true;
-                MapCanvas.Children.Add(drawingLine);
-            }
-            else
-            {
-                MapCanvas.Children.Add(new Line
-                {
-                    X1 = drawingLine.X1,
-                    Y1 = drawingLine.Y1,
-                    X2 = drawingLine.X2,
-                    Y2 = drawingLine.Y2,
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 4
-                });
-            }
-
-            drawingLine.X1 = position.X;
-            drawingLine.Y1 = position.Y;
-        }
-        private void CreateDrawingLine()
-        {
-            drawingLine = new Line
-            {
-                Stroke = Brushes.Gray,
-                StrokeThickness = 4,
-            };
-
-            Canvas.SetZIndex(drawingLine, 100);
-        }
-        private void UpdateDrawingLine(Point position)
-        {
-            drawingLine.X2 = position.X;
-            drawingLine.Y2 = position.Y;
-        }
-        private void EndDrawingLine()
-        {
-            isDrawingLines = false;
-            MapCanvas.Children.Remove(drawingLine);
-        }
-
-        private void DrawPolygon(Point position)
-        {
-            
         }
     }
 }
