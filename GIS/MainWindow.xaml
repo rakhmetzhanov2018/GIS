@@ -41,12 +41,6 @@
                     <RadioButton Content="SELECT" Click="MapModeRadioButton_Click" Tag="Select"/>
                     <RadioButton Content="DRAW" Click="MapModeRadioButton_Click" Tag="Draw"/>
                 </StackPanel>
-
-                <StackPanel x:Name="DrawModePanel" Orientation="Vertical" Margin="10" >
-                    <RadioButton Content="DOT" IsChecked="True" Click="DrawModeRadioButton_Click" Tag="Dot"/>
-                    <RadioButton Content="LINE" Click="DrawModeRadioButton_Click" Tag="Line"/>
-                    <RadioButton Content="POLYGON" Click="DrawModeRadioButton_Click" Tag="Polygon"/>
-                </StackPanel>
             </StackPanel>
 
             <TreeView x:Name="LayerTreeView" Grid.Row="1" Margin="10" Background="Wheat" Padding="0"
@@ -159,7 +153,7 @@
         </StatusBar>
         
         <Grid Grid.Row="0" Grid.Column="1">
-            <Canvas x:Name="MapCanvas" Margin="10" Focusable="True" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown" MouseUp="MapCanvas_MouseUp"/>
+            <Canvas x:Name="MapCanvas" Margin="10" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown" MouseUp="MapCanvas_MouseUp"/>
             
             <Grid x:Name="FeaturePropertiesGrid" Visibility="Hidden">
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="White">
