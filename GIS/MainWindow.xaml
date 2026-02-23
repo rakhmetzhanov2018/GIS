@@ -34,7 +34,7 @@
                     </Style>
                 </StackPanel.Resources>
                 <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
-                <Button Name="DeleteLayerButton" Content="Удалить слой" Click="DeleteLayerButton_Click"/>
+                <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click"/>
 
                 <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
                     <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
@@ -55,10 +55,20 @@
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="TreeViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Tag" Value="{Binding}"/>  
                     </Style>
                 </TreeView.ItemContainerStyle>
-                
+
                 <TreeView.Resources>
+                    <ContextMenu x:Key="LayerContextMenu">
+                        <MenuItem Header="Добавить объект" Click="AddObjectToLayer_MenuItem_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="+"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                    
+                    
                     <Style TargetType="Button">
                         <Setter Property="FontSize" Value="14"/>
                         <Setter Property="Width" Value="24"/>
@@ -69,9 +79,10 @@
                         <Setter Property="Background" Value="Transparent"/>
                     </Style>
 
+
+
                     <HierarchicalDataTemplate DataType="{x:Type classes:Layer}" ItemsSource="{Binding ObjectList}">
-                        <Border HorizontalAlignment="Stretch" Background="Transparent">
-                        <Grid HorizontalAlignment="Stretch">
+                        <Grid HorizontalAlignment="Stretch" ContextMenu="{StaticResource LayerContextMenu}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="110"/>
@@ -117,7 +128,6 @@
                                     ToolTip="Настройки слоя"                                   
                                     Click="LayerSettingsButton_Click"/>
                         </Grid>
-                        </Border>
                     </HierarchicalDataTemplate>
 
                     <HierarchicalDataTemplate DataType="{x:Type classes:Feature}">
@@ -150,11 +160,7 @@
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock x:Name="BoundsCenterTextBox" Text="Границ пока нет"/>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock x:Name="BoundsSizeTextBox" Text="Границ пока нет"/>
+                <TextBlock x:Name="MouseGeoCoordsTextBox" Text="Границ пока нет"/>
             </StatusBarItem>
         </StatusBar>
         

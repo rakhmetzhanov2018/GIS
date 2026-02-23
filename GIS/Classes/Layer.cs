@@ -16,6 +16,8 @@ namespace GIS.Classes
     {
         private bool isVisible = true;
         private LayerStyle layerStyle;
+        private string geoType;
+
         public string Name { get; set; } = "Новый слой";
         public Boolean IsVisible
         { get => isVisible;
@@ -49,9 +51,9 @@ namespace GIS.Classes
             {
                 if (ObjectList.Count == 0)
                 {
-                    return "Empty";
+                    return geoType;
                 }
-                return ObjectList.FirstOrDefault().Geometry switch
+                return ObjectList.First().Geometry switch
                 {
                     GeoGraphicPoint => "Point",
                     GeoGraphicLineString => "LineString",
@@ -59,15 +61,17 @@ namespace GIS.Classes
                     _ => throw new InvalidOperationException()
                 };
             }
+
+            private set => geoType = value;
         }
 
         public Layer()
         {
         }
-        public Layer(string name, Boolean isVisible = true)
+        public Layer(string name, string geoType = "Empty")
         {
             Name = name;
-            IsVisible = isVisible;
+            GeoType = geoType;
         }
         
         public event PropertyChangedEventHandler? PropertyChanged;

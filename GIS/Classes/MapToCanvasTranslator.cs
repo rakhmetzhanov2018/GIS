@@ -19,6 +19,7 @@ namespace GIS.Classes
             Ratio = Math.Min(yRatio, xRatio);
         }
         static public Point TranslateCoords(double X, double Y)
+
         {
             return new Point((X - Bounds.MinLon) * Ratio, 
                CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
@@ -40,7 +41,7 @@ namespace GIS.Classes
         static public double[] TranslateFromCanvasToGeo(double graphicX, double graphicY)
         {
             double X = (graphicX - GlobalOffsetX) / GlobalScale;
-            double Y = (graphicY - GlobalOffsetY) / GlobalScale;
+            double Y = CanvasSize.Height - (graphicY - GlobalOffsetY) / GlobalScale;
 
             double lon = X / Ratio + Bounds.MinLon;
             double lat = Y / Ratio + Bounds.MinLat;

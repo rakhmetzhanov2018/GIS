@@ -1,5 +1,7 @@
 ﻿using GIS.Classes;
 using GIS.Classes.DrawObjects;
+using GIS.Classes.Factories;
+using GIS.Classes.Managers;
 using GIS.Windows;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
@@ -7,6 +9,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net.WebSockets;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
@@ -32,19 +35,15 @@ namespace GIS
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Layer tempLayer;
-
         private MapMode currentMapMode = MapMode.Move;
-        private string currentDrawMode = "Dot";
 
         private bool isSelecting = false;
         private Rectangle selectionRectangle;
 
-        private bool isDrawingLines = false;
-        private Line drawingLine;
-
         private bool _isLeftMouseButtonDown = false;
         private Point _leftMouseButtonDownPoint;
+
+        private DrawingService drawingService;
 
         public static ObservableCollection<Layer> layersList = [];
         public MainWindow()
@@ -56,10 +55,8 @@ namespace GIS
             LayerTreeView.ItemsSource = layersList;
 
             CreateSelectionRectangle();
-            CreateDrawingLine();
 
-            tempLayer = new Layer("ВременныйСлой");
-            layersList.Add(tempLayer);
+            drawingService = new DrawingService(MapCanvas);
         }
 
         #region Управление слоями
@@ -107,21 +104,6 @@ namespace GIS
             else
             {
                 StatusTextBox.Text = "Отмена добавления нового слоя";
-            }
-        }
-
-        private void DeleteLayerButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (LayerTreeView.SelectedItem is Layer selectedLayer)
-            {
-                var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{selectedLayer.Name}'?",
-                    "Удаление",
-                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    DeleteLayer(selectedLayer);
-                }
             }
         }
 
@@ -194,6 +176,8 @@ namespace GIS
             CoordinatesTextBox.Text = $"Координаты: {currentMousePoint.X - MapToCanvasTranslator.GlobalOffsetX:f0}," +
                 $" {currentMousePoint.Y - MapToCanvasTranslator.GlobalOffsetY:f0}";
 
+            UpdateCurrentMouseCoordsDisplay(currentMousePoint);
+
             switch (currentMapMode)
             {
                 case MapMode.Move:
@@ -242,9 +226,13 @@ namespace GIS
         }
         private void DrawMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
         {
-            if (isDrawingLines)
+            if (drawingService.IsDrawingLines)
             {
-                UpdateDrawingLine(currentMousePoint);
+                drawingService.UpdateDrawingLine(currentMousePoint);
+            }
+            else if (drawingService.IsDrawingPolygons)
+            {
+                drawingService.UpdateDrawingPolygon(currentMousePoint);
             }
         }
 
@@ -298,20 +286,27 @@ namespace GIS
         }
         private void DrawMode_MouseDown(Point position)
         {
-            switch (currentDrawMode)
-            {
-                case "Dot":
-                    DrawDot(position);
-                    break;
+            if (LayerTreeView.SelectedItem is not Layer selectedLayer)
+                return;
 
-                case "Line":
-                    DrawLine(position);
+            drawingService.SetSelectedLayer(selectedLayer);
+
+            switch (selectedLayer.GeoType) {
+
+                case "Point":
+                    drawingService.DrawPoint(position);
+                    break;
+                
+                case "LineString":
+                    drawingService.DrawLine(position);
                     break;
 
                 case "Polygon":
-                    // StartDrawPolygon(position);
+                    drawingService.DrawPolygon(position);
                     break;
-            }
+            };
+
+            Draw();
         }
 
         #endregion MapCanvas_MouseDown
@@ -334,7 +329,6 @@ namespace GIS
             }
 
             UpdateScale();
-            UpdateBoundsDisplay();
         }
         private void ZoomToLayer(Layer layer)
         {
@@ -461,9 +455,9 @@ namespace GIS
             {
                 layer.DrawAll(MapCanvas);
             }
+
             ApplyStylesForAllLayers();
             UpdateScale();
-            UpdateBoundsDisplay();
         }
 
         private void ApplyStylesForAllLayers()
@@ -482,24 +476,17 @@ namespace GIS
             MapToCanvasTranslator.CanvasSize = new Size(MapCanvas.ActualWidth, MapCanvas.ActualHeight);
             ScaleTextBox.Text = MapToCanvasTranslator.GetScale();
         }
-        private void UpdateBoundsDisplay()
+        private void UpdateCurrentMouseCoordsDisplay(Point position)
         {
-            //const double KM_PER_DEGREE = 111.32;
-
             if (MapToCanvasTranslator.Bounds.MinLon == double.MaxValue)
             {
-                BoundsCenterTextBox.Text = "Границ пока нет";
-                BoundsSizeTextBox.Text = "Границ пока нет";
+                MouseGeoCoordsTextBox.Text = "Границ пока нет";
                 return;
             }
 
-            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(MapCanvas.ActualWidth / 2, MapCanvas.ActualHeight / 2);
+            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
 
-            //double widthKM = deltaLon * KM_PER_DEGREE;
-            //double heightKM = deltaLat * KM_PER_DEGREE * Math.Cos(centerLat * Math.PI / 180);
-
-            BoundsCenterTextBox.Text = $"Центр: {geoCoords[0]:F6}°; {geoCoords[1]:F6}°";
-            //BoundsSizeTextBox.Text = $"Размер: {widthKM:F1}×{heightKM:F1} км";
+            MouseGeoCoordsTextBox.Text = $"Текущие координаты: {geoCoords[0]:F6}°; {geoCoords[1]:F6}°";
         }
         #endregion Обновление статус-бара
 
@@ -613,8 +600,7 @@ namespace GIS
                     MapToCanvasTranslator.GlobalOffsetY -= 5;
                     break;
                 case Key.Escape:
-                    if (isDrawingLines)
-                        EndDrawingLine();
+                    drawingService.EndDrawing();
                     break;
                 default:
                     return;
@@ -624,7 +610,7 @@ namespace GIS
             {
                 layer.UpdateAll();
             }
-            UpdateBoundsDisplay();
+            Draw();
         }
         private void MapModeRadioButton_Click(object sender, EventArgs e)
         {
@@ -646,9 +632,10 @@ namespace GIS
         {
             if (sender is RadioButton radioButton)
             {
-                currentDrawMode = radioButton.Tag.ToString();
+                // currentDrawMode = radioButton.Tag.ToString();
             }
         }
+        
         #endregion Экспериментальные/временные функции
 
         #region Функции удаления слоя/объекта
@@ -676,7 +663,6 @@ namespace GIS
                 }
             }
         }
-
         private void DeleteFeature(Feature selectedItem)
         {
             var layer = FindLayerByFeature(selectedItem);
@@ -688,8 +674,6 @@ namespace GIS
 
             StatusTextBox.Text = $"Объект '{selectedItem.Name}' из слоя '{layer.Name}' удалён";
         }
-
-
         private void DeleteLayer(Layer layer)
         {
             layersList.Remove(layer);
@@ -713,71 +697,23 @@ namespace GIS
         }
 
         #endregion Функции удаления слоя/объекта
-
-        private void DrawDot(Point position)
+        private void CreateLayerButton_Click(object sender, RoutedEventArgs e)
         {
-            var ellipse = new Ellipse
+            var createLayerWindow = new CreateNewLayerWindow();
+
+            if (createLayerWindow.ShowDialog() == true)
             {
-                Stroke = Brushes.Black,
-                StrokeThickness = 4,
-                Width = 6,
-                Height = 6
-            };
+                var newLayer = createLayerWindow.CreatedLayer;
+                layersList.Add(newLayer);
+                Draw();
 
-            Canvas.SetLeft(ellipse, position.X - 3);
-            Canvas.SetTop(ellipse, position.Y - 3);
-            MapCanvas.Children.Add(ellipse);
-        } 
-
-        private void DrawLine(Point position)
-        {
-            DrawDot(position);
-
-            if (!isDrawingLines)
-            {
-                isDrawingLines = true;
-                MapCanvas.Children.Add(drawingLine);
+                StatusTextBox.Text = $"Добавлен новый слой {newLayer.Name}";
             }
-            else
-            {
-                MapCanvas.Children.Add(new Line
-                {
-                    X1 = drawingLine.X1,
-                    Y1 = drawingLine.Y1,
-                    X2 = drawingLine.X2,
-                    Y2 = drawingLine.Y2,
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 4
-                });
-            }
-
-            drawingLine.X1 = position.X;
-            drawingLine.Y1 = position.Y;
-        }
-        private void CreateDrawingLine()
-        {
-            drawingLine = new Line
-            {
-                Stroke = Brushes.Gray,
-                StrokeThickness = 4,
-            };
-
-            Canvas.SetZIndex(drawingLine, 100);
-        }
-        private void UpdateDrawingLine(Point position)
-        {
-            drawingLine.X2 = position.X;
-            drawingLine.Y2 = position.Y;
-        }
-        private void EndDrawingLine()
-        {
-            isDrawingLines = false;
-            MapCanvas.Children.Remove(drawingLine);
         }
 
-        private void DrawPolygon(Point position)
+        private void AddObjectToLayer_MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
     }
 }

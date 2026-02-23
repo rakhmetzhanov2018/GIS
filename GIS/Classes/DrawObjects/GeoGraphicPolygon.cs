@@ -23,6 +23,15 @@ namespace GIS.Classes.DrawObjects
                 HolesGeoCoords.Add(coords[i]);
             }
         }
+
+        public GeoGraphicPolygon(List<Point> coords)
+        {
+            foreach (Point point in coords)
+            {
+                GeoCoords.Add([point.X, point.Y]);
+            }
+        }
+
         public override void CreateFigure()
         {
             CalculateGraphicCoords();

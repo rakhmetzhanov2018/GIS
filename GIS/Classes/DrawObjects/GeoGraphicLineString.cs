@@ -17,6 +17,17 @@ namespace GIS.Classes.DrawObjects
         {
             GeoCoords = coords;
         }
+
+        public GeoGraphicLineString(List<Point> coords)
+        {
+            GeoCoords = new List<double[]>();
+
+            foreach (Point point in coords)
+            {
+                GeoCoords.Add([point.X, point.Y]);
+            }
+        }
+
         public override void CreateFigure()
         {
             CalculateGraphicCoords();
