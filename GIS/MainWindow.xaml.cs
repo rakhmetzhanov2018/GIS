@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace GIS
@@ -44,6 +45,8 @@ namespace GIS
         private Point _leftMouseButtonDownPoint;
 
         private DrawingService drawingService;
+
+        private bool isSelectionUpdated = false;
 
         public static ObservableCollection<Layer> layersList = [];
         public MainWindow()
@@ -127,6 +130,16 @@ namespace GIS
             {
                 layer.AddObject(ParseFeature(root, ref bounds));
             }
+            else if (type == "GeometryCollection")
+            {
+                foreach (JsonElement feature in root.GetProperty("geometries").EnumerateArray())
+                {
+                    if (feature.GetProperty("type").GetString() == "MultiPolygon")
+                    {
+                        ParseMultiPolygon(layer, feature, ref bounds);
+                    }
+                }
+            }
             MapToCanvasTranslator.Bounds = bounds;
             MapToCanvasTranslator.CanvasSize = MapCanvas.RenderSize;
             MapToCanvasTranslator.CalculateRatios();
@@ -134,6 +147,13 @@ namespace GIS
             layer.Bounds = bounds;
         }
 
+        private void ParseMultiPolygon(Layer layer, JsonElement root, ref GeoBounds bounds)
+        {
+            foreach (JsonElement polygon in root.EnumerateArray())
+            {
+                GeoGraphicObject geo = GeoGraphicObject.Parse(polygon);
+            }
+        }
         private void ParseFeatureCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
         {
             foreach (JsonElement feature in root.GetProperty("features").EnumerateArray())
@@ -277,6 +297,8 @@ namespace GIS
                 ClearSelection();
                 feature.IsSelected = true;
                 ShowFeatureInfo(feature);
+
+                SelectFeatureInTreeView(feature);
             }
             else
             {
@@ -406,10 +428,16 @@ namespace GIS
 
             selectionRectangle.Visibility = Visibility.Collapsed;
 
-            FindSelectedFeatures();
+            var selectedFeatures = FindSelectedFeatures();
+
+            foreach( var feature in selectedFeatures )
+            {
+                feature.IsSelected = true;
+            }
         }
-        private void FindSelectedFeatures()
+        private List<Feature> FindSelectedFeatures()
         {
+
             List<Feature> selectedFeatures = new List<Feature>();
 
             Rect selectionArea = new Rect
@@ -427,10 +455,12 @@ namespace GIS
                     if (IsFigureInArea(feature.Geometry.Figure, selectionArea))
                     {
                         selectedFeatures.Add(feature);
-                        feature.IsSelected = true;
                     }
                 }
             }
+
+            return selectedFeatures;
+
         }
         private bool IsFigureInArea(Shape figure, Rect area)
         {
@@ -556,6 +586,7 @@ namespace GIS
                 {
                     feature.IsSelected = false;
                 }
+                layer.IsSelected = false;
             }
 
             FeaturePropertiesGrid.Visibility = Visibility.Hidden;
@@ -627,13 +658,6 @@ namespace GIS
                 };
 
             } 
-        }
-        private void DrawModeRadioButton_Click(object sender, EventArgs e)
-        {
-            if (sender is RadioButton radioButton)
-            {
-                // currentDrawMode = radioButton.Tag.ToString();
-            }
         }
         
         #endregion Экспериментальные/временные функции
@@ -714,6 +738,80 @@ namespace GIS
         private void AddObjectToLayer_MenuItem_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void SelectFeatureInTreeView(Feature selectedFeature)
+        {
+            var layer = FindLayerByFeature(selectedFeature);
+
+            if (LayerTreeView.ItemContainerGenerator.ContainerFromItem(layer) is TreeViewItem layerItem)
+            {
+                layerItem.IsExpanded = true;
+            }
+
+            if (LayerTreeView.ItemContainerGenerator.ContainerFromItem(selectedFeature) is TreeViewItem featureItem)
+            {
+                featureItem.BringIntoView();
+                featureItem.Focus();
+            }
+        }
+
+        private void LayerTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (isSelectionUpdated)
+            {
+                return;
+            }
+
+            isSelectionUpdated = true;
+
+            if (e.NewValue is Layer selectedLayer)
+            {
+                ClearSelection();
+                selectedLayer.IsSelected = true;
+            }
+            else if (e.NewValue is Feature selectedFeature)
+            {
+                ClearSelection();
+                selectedFeature.IsSelected = true;
+                ShowFeatureInfo(selectedFeature);
+            }
+
+            isSelectionUpdated = false;
+        }
+
+        private void ImportImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new()
+            {
+                Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png|All files (*.*)|*.*",
+                Title = "Выберите изображение",
+                Multiselect = false,
+            };
+            
+            if (openFileDialog.ShowDialog() == true)
+            {
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(openFileDialog.FileName);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+
+                Image image = new Image
+                {
+                    Source = bitmap,
+                    Width = bitmap.Width,
+                    Height = bitmap.Height,
+                    Stretch = Stretch.Uniform,
+                    Tag = openFileDialog.FileName
+                };
+
+                Canvas.SetLeft(image, 0);
+                Canvas.SetTop(image, 0);
+
+                RasterLayer rasterLayer = new RasterLayer(image, openFileDialog.FileName);
+                layersList.Add(rasterLayer);
+            }
         }
     }
 }

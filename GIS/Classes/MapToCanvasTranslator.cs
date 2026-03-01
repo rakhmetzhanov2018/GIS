@@ -49,6 +49,18 @@ namespace GIS.Classes
             return [lon, lat];
         }
 
+        static public List<double[]> TranslateFromCanvasToGeo(List<Point> points)
+        {
+            var newPoints = new List<double[]>();
+
+            foreach (var point in points)
+            {
+                newPoints.Add(TranslateFromCanvasToGeo(point.X, point.Y));
+            }
+
+            return newPoints;
+        }
+
         static public void ResetGlobalOffsets()
         {
             GlobalOffsetX = 0;

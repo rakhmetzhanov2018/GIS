@@ -115,7 +115,8 @@ namespace GIS.Classes.Managers
                 drawingPolygon = new Polygon
                 {
                     Stroke = Brushes.Black,
-                    StrokeThickness = 4,
+                    StrokeDashArray = new DoubleCollection { 3, 2 },
+                    StrokeThickness = 1,
                     Fill = Brushes.Gray
                 };
 
@@ -147,7 +148,9 @@ namespace GIS.Classes.Managers
                 mapCanvas.Children.Remove(drawingLine);
                 mapCanvas.Children.Remove(demoPolyLine);
 
-                GeoGraphicLineString newGeo = new GeoGraphicLineString(demoPolyLine.Points.ToList());
+                var newPointList = MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolyLine.Points.ToList());
+
+                GeoGraphicLineString newGeo = new GeoGraphicLineString(newPointList);
                 AddFigureToSelectedLayer(newGeo);
             }
             else if (IsDrawingPolygons)
@@ -156,7 +159,12 @@ namespace GIS.Classes.Managers
                 mapCanvas.Children.Remove(drawingPolygon);
                 mapCanvas.Children.Remove(demoPolygon);
 
-                GeoGraphicPolygon newGeo = new GeoGraphicPolygon(demoPolygon.Points.ToList());
+                var newPointList = new List<List<double[]>>
+                {
+                    MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolygon.Points.ToList())
+                };
+
+                GeoGraphicPolygon newGeo = new GeoGraphicPolygon(newPointList);
                 AddFigureToSelectedLayer(newGeo);
             }
         }

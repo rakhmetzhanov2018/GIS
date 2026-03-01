@@ -35,27 +35,27 @@
                 </StackPanel.Resources>
                 <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
                 <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click"/>
+                <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click"/>
 
                 <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
                     <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
                     <RadioButton Content="SELECT" Click="MapModeRadioButton_Click" Tag="Select"/>
                     <RadioButton Content="DRAW" Click="MapModeRadioButton_Click" Tag="Draw"/>
                 </StackPanel>
-
-                <StackPanel x:Name="DrawModePanel" Orientation="Vertical" Margin="10" >
-                    <RadioButton Content="DOT" IsChecked="True" Click="DrawModeRadioButton_Click" Tag="Dot"/>
-                    <RadioButton Content="LINE" Click="DrawModeRadioButton_Click" Tag="Line"/>
-                    <RadioButton Content="POLYGON" Click="DrawModeRadioButton_Click" Tag="Polygon"/>
-                </StackPanel>
             </StackPanel>
 
             <TreeView x:Name="LayerTreeView" Grid.Row="1" Margin="10" Background="Wheat" Padding="0"
-                       HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" MouseDoubleClick="LayerListBox_MouseDoubleClick" KeyDown="LayerListBox_KeyDown">
+                       HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" MouseDoubleClick="LayerListBox_MouseDoubleClick" 
+                      KeyDown="LayerListBox_KeyDown" SelectedItemChanged="LayerTreeView_SelectedItemChanged">
                 
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="TreeViewItem">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Setter Property="Tag" Value="{Binding}"/>  
+                        <Setter Property="Tag" Value="{Binding}"/>
+
+                        
+                        
                     </Style>
                 </TreeView.ItemContainerStyle>
 
@@ -83,7 +83,7 @@
 
                     <HierarchicalDataTemplate DataType="{x:Type classes:Layer}" ItemsSource="{Binding ObjectList}">
                         <Grid HorizontalAlignment="Stretch" ContextMenu="{StaticResource LayerContextMenu}">
-                            <Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>    
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="110"/>
                                 <ColumnDefinition Width="Auto"/>

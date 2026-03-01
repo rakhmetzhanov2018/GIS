@@ -53,8 +53,13 @@ namespace GIS.Classes.DrawObjects
                 "Point" => GeoGraphicPoint.Parse(root),
                 "LineString" => GeoGraphicLineString.Parse(root),
                 "Polygon" => GeoGraphicPolygon.Parse(root),
+                //"MultiPolygon" => ParseMultiPolygon(),
                 _ => throw new NotImplementedException()
             };
+        }
+        private void ParseMultiPolygon()
+        {
+            // TODO: Реализацию MultiPolygon
         }
         public void GetBounds(ref GeoBounds bounds)
         {

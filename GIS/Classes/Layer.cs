@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace GIS.Classes
         private bool isVisible = true;
         private LayerStyle layerStyle;
         private string geoType;
+        private bool isSelected;
 
         public string Name { get; set; } = "Новый слой";
         public Boolean IsVisible
@@ -26,7 +28,7 @@ namespace GIS.Classes
                 if (isVisible != value)
                 {
                     isVisible = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(isVisible)));
+                    OnPropertyChanged();
                     UpdateVisibility();
                 }
             } 
@@ -63,6 +65,18 @@ namespace GIS.Classes
             }
 
             private set => geoType = value;
+        }
+        public bool IsSelected
+        {
+            get => isSelected;
+            set
+            {
+                if (isSelected != value)
+                {
+                    isSelected = value;
+                    OnPropertyChanged();
+                }
+            }
         }
 
         public Layer()
@@ -134,7 +148,11 @@ namespace GIS.Classes
 
             return $"GeoGraphicPoint - {pointCount}, GeoGraphicLineString - {lineCount}, GeoGraphicPolygon - {polygonCount}";
         }
-        public void OnStylePropertyChanged(object sender, PropertyChangedEventArgs e) 
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        private void OnStylePropertyChanged(object sender, PropertyChangedEventArgs e) 
         {
             ApplyStyleToAllFeatures();
         }
