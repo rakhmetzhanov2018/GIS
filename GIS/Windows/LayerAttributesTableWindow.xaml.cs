@@ -45,7 +45,8 @@ namespace GIS
 
                 foreach (var key in obj.props.Keys)
                 {
-                    row[key] = obj.props[key];
+                    if (dt.Columns.Contains(key))
+                        row[key] = obj.props.ContainsKey(key) ? obj.props[key] : "Нет данных";
                 }
 
                 dt.Rows.Add(row);

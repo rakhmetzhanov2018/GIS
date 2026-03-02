@@ -74,11 +74,15 @@ namespace GIS.Classes
                     Color = Colors.DarkRed,
                     BlurRadius = 5
                 };
+
+                Canvas.SetZIndex(shape, 100);
             }
             else
             {
                 Geometry.Figure.StrokeDashArray = null;
                 Geometry.Figure.Effect = null;
+
+                Canvas.SetZIndex(Geometry.Figure, 0);
             }
         }
     }

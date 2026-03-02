@@ -77,9 +77,8 @@ namespace GIS.Classes.DrawObjects
             mainPolygon.Points = newPoints;
         }
         
-        public new static GeoGraphicPolygon Parse(JsonElement root)
+        public new static GeoGraphicPolygon Parse(JsonElement polygons_coords)
         {
-            var polygons_coords = root.GetProperty("coordinates");
             var polygons = new List<List<double[]>>();
 
             foreach (var coords in polygons_coords.EnumerateArray())

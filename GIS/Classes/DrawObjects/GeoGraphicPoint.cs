@@ -50,9 +50,8 @@ namespace GIS.Classes.DrawObjects
             Canvas.SetTop(ellipse, Ycoord - ellipse.Height / 2);
         }
         
-        public new static GeoGraphicPoint Parse(JsonElement root)
+        public new static GeoGraphicPoint Parse(JsonElement coords)
         {
-            var coords = root.GetProperty("coordinates");
             return new GeoGraphicPoint(coords[0].GetDouble(), coords[1].GetDouble());
         }
     }

@@ -42,24 +42,15 @@ namespace GIS.Classes.DrawObjects
         public static GeoGraphicObject Parse(JsonElement root)
         {
             string? type = root.GetProperty("type").GetString();
-
-            if (type == null)
-            {
-                throw new Exception("Geometry type is NULL");
-            }
+            var coords = root.GetProperty("coordinates");
 
             return type switch
             {
-                "Point" => GeoGraphicPoint.Parse(root),
-                "LineString" => GeoGraphicLineString.Parse(root),
-                "Polygon" => GeoGraphicPolygon.Parse(root),
-                //"MultiPolygon" => ParseMultiPolygon(),
+                "Point" => GeoGraphicPoint.Parse(coords),
+                "LineString" => GeoGraphicLineString.Parse(coords),
+                "Polygon" => GeoGraphicPolygon.Parse(coords),
                 _ => throw new NotImplementedException()
             };
-        }
-        private void ParseMultiPolygon()
-        {
-            // TODO: Реализацию MultiPolygon
         }
         public void GetBounds(ref GeoBounds bounds)
         {

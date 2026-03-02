@@ -36,6 +36,7 @@ namespace GIS.Classes.Managers
             points = new List<Point>();
 
             CreateDrawingFigures();
+
         }
 
         private void CreateDrawingFigures()
@@ -53,8 +54,8 @@ namespace GIS.Classes.Managers
                 Fill = Brushes.Gray
             };
 
-            Canvas.SetZIndex(drawingLine, 100);
-            Canvas.SetZIndex(drawingPolygon, 100);
+            Canvas.SetZIndex(drawingLine, 101);
+            Canvas.SetZIndex(drawingPolygon, 101);
         }
         private void AddFigureToSelectedLayer(GeoGraphicObject newGeo)
         {
@@ -94,6 +95,9 @@ namespace GIS.Classes.Managers
                     StrokeThickness = 4,
                 };
 
+                Canvas.SetZIndex(demoPolyLine, 100);
+                
+
                 IsDrawingLines = true;
                 mapCanvas.Children.Add(drawingLine);
                 mapCanvas.Children.Add(demoPolyLine);
@@ -120,6 +124,8 @@ namespace GIS.Classes.Managers
                     Fill = Brushes.Gray
                 };
 
+                Canvas.SetZIndex(drawingPolygon, 101);
+                Canvas.SetZIndex(demoPolygon, 100);
 
                 IsDrawingPolygons = true;
                 mapCanvas.Children.Add(drawingPolygon);

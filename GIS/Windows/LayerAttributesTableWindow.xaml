@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="LayerAttributesTableWindow" Height="450" Width="800">
     <Grid>
-        <DataGrid x:Name="LayerItemsDataGrid" AutoGenerateColumns="True" Margin="10" IsReadOnly="True"/>
+        <DataGrid x:Name="LayerItemsDataGrid" AutoGenerateColumns="True" Margin="10" IsReadOnly="True" EnableColumnVirtualization="True"/>
     </Grid>
 </Window>

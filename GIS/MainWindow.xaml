@@ -169,15 +169,15 @@
             
             <Grid x:Name="FeaturePropertiesGrid" Visibility="Hidden">
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="White">
-                    <TextBlock Text="Свойства фигуры" HorizontalAlignment="Center" FontSize="16"/>
+                    <TextBlock Text="Свойства фигуры" HorizontalAlignment="Center" FontSize="16" Padding="10"/>
                     <DataGrid x:Name="FeaturePropertiesDataGrid" Margin="10" IsReadOnly="True" Background="Transparent" BorderThickness="0"
                               FontFamily="Arial" FontSize="16" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" 
                               CanUserSortColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" 
-                              GridLinesVisibility="None" HeadersVisibility="Column">
+                              GridLinesVisibility="None" HeadersVisibility="Column" MaxHeight="400">
                         
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Атрибут" Binding="{Binding Key}" Width="Auto"/>
-                            <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="Auto"/>
+                            <DataGridTextColumn Header="Атрибут" Binding="{Binding Key}" Width="Auto" MinWidth="100"/>
+                            <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="Auto" />
                         </DataGrid.Columns>
 
                         <DataGrid.Resources>

@@ -68,9 +68,8 @@ namespace GIS.Classes.DrawObjects
 
             polyline.Points = new PointCollection(newPoints);
         }
-        public new static GeoGraphicLineString Parse(JsonElement root)
+        public new static GeoGraphicLineString Parse(JsonElement coords)
         {
-            var coords = root.GetProperty("coordinates");
             var points = new List<double[]>();
 
             foreach (var coord in coords.EnumerateArray())

@@ -62,7 +62,7 @@ namespace GIS
             drawingService = new DrawingService(MapCanvas);
         }
 
-        #region Управление слоями
+        #region Загрузка слоёв
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
         {
             OpenFileDialog openFileDialog = new()
@@ -110,7 +110,7 @@ namespace GIS
             }
         }
 
-        #endregion Управление слоями
+        #endregion Загрузка слоёв
 
         #region Парсинг GeoJSON
 
@@ -122,24 +122,21 @@ namespace GIS
             var root = doc.RootElement;
             var type = root.GetProperty("type").GetString();
 
-            if (type == "FeatureCollection")
+            switch (type)
             {
-                ParseFeatureCollection(layer, root, ref bounds);
+                case "GeometryCollection":
+                    ParseGeometryCollection(layer, root, ref bounds);
+                    break;
+
+                case "FeatureCollection":
+                    ParseFeatureCollection(layer, root, ref bounds);
+                    break;
+
+                case "Feature":
+                    layer.AddObject(ParseFeature(root, ref bounds));
+                    break;
             }
-            else if (type == "Feature")
-            {
-                layer.AddObject(ParseFeature(root, ref bounds));
-            }
-            else if (type == "GeometryCollection")
-            {
-                foreach (JsonElement feature in root.GetProperty("geometries").EnumerateArray())
-                {
-                    if (feature.GetProperty("type").GetString() == "MultiPolygon")
-                    {
-                        ParseMultiPolygon(layer, feature, ref bounds);
-                    }
-                }
-            }
+
             MapToCanvasTranslator.Bounds = bounds;
             MapToCanvasTranslator.CanvasSize = MapCanvas.RenderSize;
             MapToCanvasTranslator.CalculateRatios();
@@ -147,18 +144,14 @@ namespace GIS
             layer.Bounds = bounds;
         }
 
-        private void ParseMultiPolygon(Layer layer, JsonElement root, ref GeoBounds bounds)
-        {
-            foreach (JsonElement polygon in root.EnumerateArray())
-            {
-                GeoGraphicObject geo = GeoGraphicObject.Parse(polygon);
-            }
-        }
         private void ParseFeatureCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
         {
             foreach (JsonElement feature in root.GetProperty("features").EnumerateArray())
             {
-                layer.AddObject(ParseFeature(feature, ref bounds));
+                if (feature.GetProperty("geometry").GetProperty("type").ToString() == "MultiPolygon")
+                    ParseMultiPolygon(layer, feature.GetProperty("geometry"), ref bounds);
+                else
+                    layer.AddObject(ParseFeature(feature, ref bounds));
             }
         }
 
@@ -170,6 +163,45 @@ namespace GIS
             geo.GetBounds(ref bounds);
 
             return new Feature(geo, dict);
+        }
+
+        private void ParseGeometryCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
+        {
+            foreach (JsonElement feature in root.GetProperty("geometries").EnumerateArray())
+            {
+                switch (feature.GetProperty("type").GetString())
+                {
+                    case "MultiPolygon":
+                        ParseMultiPolygon(layer, feature, ref bounds);
+                        break;
+
+                    case "MultiLineString":
+                        // TODO
+                        break;
+
+                    case "MultiPoint":
+                        // TODO
+                        break;
+
+                    case "Point":
+                    case "LineString":
+                    case "Polygon":
+                        layer.AddObject(ParseFeature(feature, ref bounds));
+                        break;
+                }
+            }
+        }
+        private void ParseMultiPolygon(Layer layer, JsonElement root, ref GeoBounds bounds)
+        {
+            var coords = root.GetProperty("coordinates");
+
+            foreach (JsonElement polygons_coords in coords.EnumerateArray())
+            {
+                GeoGraphicPolygon geoPolygon = GeoGraphicPolygon.Parse(polygons_coords);
+                geoPolygon.GetBounds(ref bounds);
+
+                layer.AddObject(new Feature(geoPolygon, []));
+            }
         }
 
         private Dictionary<String, String> ParseProperties(JsonElement root)
@@ -788,6 +820,9 @@ namespace GIS
                 Title = "Выберите изображение",
                 Multiselect = false,
             };
+
+
+
             
             if (openFileDialog.ShowDialog() == true)
             {
@@ -810,7 +845,29 @@ namespace GIS
                 Canvas.SetTop(image, 0);
 
                 RasterLayer rasterLayer = new RasterLayer(image, openFileDialog.FileName);
+                
+                var window = new MapImageSettingsWindow();
+
+
+                if (window.ShowDialog() == true)
+                {
+                    rasterLayer.Bounds = window.ImageBounds;
+                }
+                else
+                {
+                    rasterLayer.Bounds = new GeoBounds
+                    {
+                        MinLon = -180,
+                        MaxLon = 180,
+                        MinLat = -90,
+                        MaxLat = 90
+                    };
+                }
+                MapToCanvasTranslator.ResetGlobalOffsets();
                 layersList.Add(rasterLayer);
+                MapCanvas.Children.Add(image);
+
+                Draw();
             }
         }
     }
