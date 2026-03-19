@@ -48,5 +48,10 @@ namespace GIS.Windows
             DialogResult = false;
             Close();
         }
+
+        private void AddAttributeButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
     }
 }

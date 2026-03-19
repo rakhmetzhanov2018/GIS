@@ -67,7 +67,7 @@ namespace GIS
         {
             OpenFileDialog openFileDialog = new()
             {
-                Filter = "GEOfiles (*.geojson)|*.geojson|All files (*.*)|*.*",
+                Filter = "GEOfiles (*.geojson;*.geo.json)|*.geojson;*.geo.json|All files (*.*)|*.*",
                 Multiselect = false,
                 Title = "Выберите GeoJSON файл"
             };
