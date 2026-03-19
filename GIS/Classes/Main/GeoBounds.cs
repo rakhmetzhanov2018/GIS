@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GIS.Classes
+namespace GIS.Classes.Main
 {
     public struct GeoBounds
     {

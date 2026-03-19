@@ -10,7 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
-namespace GIS.Classes
+namespace GIS.Classes.Main
 {
     public class Feature : INotifyPropertyChanged
     {
@@ -29,12 +29,12 @@ namespace GIS.Classes
             }
         }
         public string Name { get; set; } = "Без названия";
-        public Dictionary<String, String> props;
+        public Dictionary<string, string> props;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public GeoGraphicObject Geometry { get; set; }
-        public Feature(GeoGraphicObject geo, Dictionary<String, String> props)
+        public Feature(GeoGraphicObject geo, Dictionary<string, string> props)
         {
             Geometry = geo;
             this.props = props;
@@ -75,14 +75,14 @@ namespace GIS.Classes
                     BlurRadius = 5
                 };
 
-                Canvas.SetZIndex(shape, 100);
+                Panel.SetZIndex(shape, 100);
             }
             else
             {
                 Geometry.Figure.StrokeDashArray = null;
                 Geometry.Figure.Effect = null;
 
-                Canvas.SetZIndex(Geometry.Figure, 0);
+                Panel.SetZIndex(Geometry.Figure, 0);
             }
         }
     }

@@ -1,7 +1,9 @@
-﻿using GIS.Classes;
-using GIS.Classes.DrawObjects;
+﻿using GIS.Classes.DrawObjects;
 using GIS.Classes.Factories;
+using GIS.Classes.Main;
 using GIS.Classes.Managers;
+using GIS.Classes.Services;
+using GIS.Classes.ViewModels;
 using GIS.Windows;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
@@ -755,11 +757,17 @@ namespace GIS
         #endregion Функции удаления слоя/объекта
         private void CreateLayerButton_Click(object sender, RoutedEventArgs e)
         {
-            var createLayerWindow = new CreateNewLayerWindow();
+            var CLViewModel = new CreateNewLayerViewModel();
+            var createLayerWindow = new CreateNewLayerWindow(CLViewModel);
 
             if (createLayerWindow.ShowDialog() == true)
             {
-                var newLayer = createLayerWindow.CreatedLayer;
+                var newLayer = new Layer
+                {
+                    Name = CLViewModel.LayerName,
+                    GeoType = CLViewModel.GeoType,
+                };
+                // TODO: Добавить в Layer учёт атрибутов
                 layersList.Add(newLayer);
                 Draw();
 

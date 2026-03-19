@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using GIS.Classes.Factories;
 using System.Windows.Input;
+using GIS.Classes.Main;
+using GIS.Classes.Services;
 
 namespace GIS.Classes.Managers
 {

@@ -1,6 +1,7 @@
 ﻿using GIS.Classes;
 using GIS.Classes.Factories;
 using GIS.Classes.Styles;
+using GIS.Classes.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,36 +23,17 @@ namespace GIS.Windows
     /// </summary>
     public partial class CreateNewLayerWindow : Window
     {
-        public Layer CreatedLayer;
-        public CreateNewLayerWindow()
+        public CreateNewLayerWindow(CreateNewLayerViewModel viewModel)
         {
             InitializeComponent();
-        }
 
-        private void CreateLayer_ApplyButton_Click(object sender, RoutedEventArgs e)
-        {
-            var newLayer = new Layer(
-                LayerNameTextBox.Text,
-                GeometryTypeComboBox.Text
-            );
+            DataContext = viewModel;
 
-            newLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(GeometryTypeComboBox.Text);
-
-            CreatedLayer = newLayer;
-
-            DialogResult = true;
-            Close();
-        }
-
-        private void CreateLayer_CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
-
-        private void AddAttributeButton_Click(object sender, RoutedEventArgs e)
-        {
-            
+            viewModel.CloseWindow += (s, result) =>
+            {
+                DialogResult = result;
+                Close();
+            };
         }
     }
 }

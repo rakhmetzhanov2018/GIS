@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GIS.Classes
+namespace GIS.Classes.Main
 {
     public class Layer : INotifyPropertyChanged
     {
@@ -21,7 +21,7 @@ namespace GIS.Classes
         private bool isSelected;
 
         public string Name { get; set; } = "Новый слой";
-        public Boolean IsVisible
+        public bool IsVisible
         { get => isVisible;
             set 
             {
@@ -64,7 +64,7 @@ namespace GIS.Classes
                 };
             }
 
-            private set => geoType = value;
+            set => geoType = value;
         }
         public bool IsSelected
         {

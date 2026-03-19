@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using GIS.Classes.Services;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace GIS.Classes
+namespace GIS.Classes.Main
 {
     public class RasterLayer : Layer
     {

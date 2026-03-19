@@ -1,7 +1,8 @@
-﻿using System.Data;
+﻿using GIS.Classes.Main;
+using System.Data;
 using System.Windows;
 
-namespace GIS.Classes
+namespace GIS.Classes.Services
 {
     internal static class MapToCanvasTranslator
     {

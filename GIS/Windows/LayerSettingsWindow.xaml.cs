@@ -1,5 +1,5 @@
-﻿using GIS.Classes;
-using GIS.Classes.Factories;
+﻿using GIS.Classes.Factories;
+using GIS.Classes.Main;
 using GIS.Classes.Styles;
 using GIS.Classes.ViewModels;
 using System;

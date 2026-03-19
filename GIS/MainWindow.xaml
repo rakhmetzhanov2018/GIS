@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS"
-        xmlns:classes="clr-namespace:GIS.Classes"
+        xmlns:classes="clr-namespace:GIS.Classes.Main"
         mc:Ignorable="d"
         Title="GIS" Height="768" Width="1366">
     <Grid>
