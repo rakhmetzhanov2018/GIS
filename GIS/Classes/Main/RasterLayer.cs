@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -14,6 +15,7 @@ namespace GIS.Classes.Main
     public class RasterLayer : Layer
     {
         private Image rasterImage;
+        private new GeoBounds Bounds { get; set; }
 
         public RasterLayer(Image rasterImage, string name)
         {
@@ -30,8 +32,7 @@ namespace GIS.Classes.Main
 
             UpdateAll();
         }
-
-        public new void UpdateAll()
+        public override void UpdateAll()
         {
             if (rasterImage == null) return;
 

@@ -1,17 +1,19 @@
 ﻿using GIS.Classes.DrawObjects;
+using GIS.Classes.Factories;
+using GIS.Classes.Main;
+using GIS.Classes.Services;
+using GIS.Classes.ViewModels;
+using GIS.Windows;
 using System;
 using System.Collections.Generic;
-using System.Windows;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using GIS.Classes.Factories;
-using System.Windows.Input;
-using GIS.Classes.Main;
-using GIS.Classes.Services;
 
 namespace GIS.Classes.Managers
 {
@@ -59,16 +61,11 @@ namespace GIS.Classes.Managers
             Canvas.SetZIndex(drawingLine, 101);
             Canvas.SetZIndex(drawingPolygon, 101);
         }
-        private void AddFigureToSelectedLayer(GeoGraphicObject newGeo)
+        private void CreateAttributeWindow(GeoGraphicObject newGeo)
         {
-            var feature = new Feature(newGeo, []);
-
-            selectedLayer.AddObject(feature);
-
-            if (selectedLayer.LayerStyle == null)
-                selectedLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(selectedLayer.GeoType);
-
-            selectedLayer.LayerStyle.ApplyToFeature(feature);
+            var viewModel = new DrawnObjectPropertiesViewModel(selectedLayer, newGeo, mapCanvas);
+            var window = new DrawnObjectPropertiesWindow(viewModel);
+            window.ShowDialog();
         }
 
         public void SetSelectedLayer(Layer selectedLayer)
@@ -82,7 +79,7 @@ namespace GIS.Classes.Managers
 
             GeoGraphicPoint newGeo = new GeoGraphicPoint(geoCoords[0], geoCoords[1]);
 
-            AddFigureToSelectedLayer(newGeo);
+            CreateAttributeWindow(newGeo);
         }
         public void DrawLine(Point position)
         {
@@ -159,7 +156,7 @@ namespace GIS.Classes.Managers
                 var newPointList = MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolyLine.Points.ToList());
 
                 GeoGraphicLineString newGeo = new GeoGraphicLineString(newPointList);
-                AddFigureToSelectedLayer(newGeo);
+                CreateAttributeWindow(newGeo);
             }
             else if (IsDrawingPolygons)
             {
@@ -173,7 +170,7 @@ namespace GIS.Classes.Managers
                 };
 
                 GeoGraphicPolygon newGeo = new GeoGraphicPolygon(newPointList);
-                AddFigureToSelectedLayer(newGeo);
+                CreateAttributeWindow(newGeo);
             }
         }
     }

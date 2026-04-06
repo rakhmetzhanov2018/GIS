@@ -1,0 +1,82 @@
+﻿<!-- FeatureAttributesCreationUserControl.xaml -->
+<UserControl x:Class="GIS.UserControls.FeatureAttributesCreationUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <Border CornerRadius="12" BorderThickness="1" 
+            BorderBrush="Black" Background="#FFFFF8EB" Margin="0,20,0,0" Padding="5">
+        <Grid Margin="5" VerticalAlignment="Center">
+            <Grid.Resources>
+                <Style TargetType="TextBlock">
+                    <Setter Property="FontFamily" Value="Trebuchet MS"/>
+                    <Setter Property="Margin" Value="0 10 0 0"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Padding" Value="10 0 0 0"/>
+                </Style>
+                <Style TargetType="Button">
+                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="Padding" Value="5,5,5,5"/>
+                    <Setter Property="FontSize" Value="12"/>
+                </Style>
+            </Grid.Resources>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="Создание атрибутов объекта" FontFamily="Trebuchet MS"
+                   Grid.ColumnSpan="2" FontSize="16" FontWeight="Bold"/>
+
+            <TextBlock Grid.Row="1" Text="Имя атрибута:"/>
+            <TextBox x:Name="AttributeNameTextBox" 
+                     Text="{Binding ViewModel.NewAttributeName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     Grid.Row="1" Grid.Column="1" Padding="3,3,3,3"/>
+
+            <TextBlock Grid.Row="2" Text="Тип атрибута:"/>
+            <ComboBox x:Name="AttributeTypeComboBox" 
+                      ItemsSource="{Binding ViewModel.DTypes, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                      SelectedValue="{Binding ViewModel.NewAttributeType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                      Grid.Row="2" Grid.Column="1" Margin="5" SelectedIndex="0"/>
+
+            <TextBlock Grid.Row="3" Text="Значение по умолчанию:"/>
+            <TextBox x:Name="DefaultValueTextBox" 
+                     Text="{Binding ViewModel.NewAttributeDefaultValue, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     Grid.Row="3" Grid.Column="1" Padding="3,3,3,3"/>
+
+            <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="5">
+                <Button x:Name="AddAttributeButton" 
+                        Command="{Binding ViewModel.AddAttributeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        HorizontalAlignment="Left" Content="Добавить новый атрибут"/>
+                <Button x:Name="DeleteSelectedAttribureButton" 
+                        Command="{Binding ViewModel.RemoveSelectedAttributeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        HorizontalAlignment="Right" Content="Удалить выбранный атрибут"/>
+            </Grid>
+
+            <DataGrid x:Name="AttributesDataGrid" Grid.Row="5" Grid.ColumnSpan="2" 
+                      ItemsSource="{Binding ViewModel.Attributes, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                      SelectedItem="{Binding ViewModel.SelectedAttribute, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      FontFamily="Arial" FontSize="12" MinHeight="200" MaxHeight="250"
+                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Имя атрибута" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Тип атрибута" Binding="{Binding DataType}" Width="*"/>
+                    <DataGridTextColumn Header="Значение по умолчанию" Binding="{Binding DefaultValue}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Border>
+</UserControl>

@@ -2,6 +2,7 @@
 using GIS.Classes.Styles;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -15,19 +16,33 @@ namespace GIS.Classes.Main
 {
     public class Layer : INotifyPropertyChanged
     {
-        private bool isVisible = true;
-        private LayerStyle layerStyle;
-        private string geoType;
-        private bool isSelected;
+        private string _name;
+        private bool _isVisible = true;
+        private LayerStyle _layerStyle;
+        private GeometryType _geoType;
+        private bool _isSelected;
+        private ObservableCollection<FeatureProperty> _featureProperties;
 
-        public string Name { get; set; } = "Новый слой";
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (_name != value)
+                {
+                    _name = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         public bool IsVisible
-        { get => isVisible;
+        { 
+            get => _isVisible;
             set 
             {
-                if (isVisible != value)
+                if (_isVisible != value)
                 {
-                    isVisible = value;
+                    _isVisible = value;
                     OnPropertyChanged();
                     UpdateVisibility();
                 }
@@ -35,45 +50,57 @@ namespace GIS.Classes.Main
         }
         public LayerStyle LayerStyle
         {
-            get => layerStyle;
+            get => _layerStyle;
             set
             {
-                if (layerStyle != value)
+                if (_layerStyle != value)
                 {
-                    layerStyle = value;
-                    layerStyle.PropertyChanged += OnStylePropertyChanged;
+                    _layerStyle = value;
+                    _layerStyle.PropertyChanged += OnStylePropertyChanged;
                 }
             }
         }
         public List<Feature> ObjectList { get; } = new();
         public GeoBounds Bounds { get; set; }
-        public string GeoType
+        public GeometryType GeoType
         {
             get
             {
                 if (ObjectList.Count == 0)
                 {
-                    return geoType;
+                    return _geoType;
                 }
                 return ObjectList.First().Geometry switch
                 {
-                    GeoGraphicPoint => "Point",
-                    GeoGraphicLineString => "LineString",
-                    GeoGraphicPolygon => "Polygon",
+                    GeoGraphicPoint => GeometryType.Point,
+                    GeoGraphicLineString => GeometryType.LineString,
+                    GeoGraphicPolygon => GeometryType.Polygon,
                     _ => throw new InvalidOperationException()
                 };
             }
 
-            set => geoType = value;
+            set => _geoType = value;
         }
         public bool IsSelected
         {
-            get => isSelected;
+            get => _isSelected;
             set
             {
-                if (isSelected != value)
+                if (_isSelected != value)
                 {
-                    isSelected = value;
+                    _isSelected = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        public ObservableCollection<FeatureProperty> FeatureProperties
+        {
+            get => _featureProperties;
+            set
+            {
+                if (_featureProperties != value)
+                {
+                    _featureProperties = value;
                     OnPropertyChanged();
                 }
             }
@@ -82,7 +109,7 @@ namespace GIS.Classes.Main
         public Layer()
         {
         }
-        public Layer(string name, string geoType = "Empty")
+        public Layer(string name, GeometryType geoType)
         {
             Name = name;
             GeoType = geoType;
@@ -117,7 +144,7 @@ namespace GIS.Classes.Main
                 feature.SetVisibility(IsVisible);
             }
         }
-        public void UpdateAll()
+        public virtual void UpdateAll()
         {
             foreach (Feature feature in ObjectList)
             {
@@ -158,13 +185,26 @@ namespace GIS.Classes.Main
         }
         public void ApplyStyleToAllFeatures()
         {
-            if (layerStyle == null)
+            if (_layerStyle == null)
             {
                 return;
             }
             foreach (Feature feature in ObjectList)
             {
                 LayerStyle.ApplyToFeature(feature);
+            }
+        }
+        public void AnalyzeFeatureProperties()
+        {
+            FeatureProperties = new ObservableCollection<FeatureProperty>();
+
+            foreach (var prop in ObjectList.First().props)
+            {
+                FeatureProperties.Add(new FeatureProperty
+                {
+                    Name = prop.Key,
+                    DataType = FeatureProperty.DefineDataType(prop.Value)
+                });
             }
         }
     }

@@ -23,30 +23,17 @@ namespace GIS.Windows
     /// </summary>
     public partial class LayerSettingsWindow : Window
     {
-        private Layer layer;
-        private LayerSettingsViewModel layerSettingsViewModel;
-        internal LayerSettingsWindow(Layer layer)
+        public LayerSettingsWindow(LayerSettingsViewModel layerSettingsViewModel)
         {
             InitializeComponent();
 
-            this.layer = layer;
-            layerSettingsViewModel = new(layer);
-
             DataContext = layerSettingsViewModel;
-        }
 
-        private void LayerSettingsApplyButton_Click(object sender, RoutedEventArgs e)
-        {
-            layerSettingsViewModel.ApplyChanges();
-
-            layer.ApplyStyleToAllFeatures();
-
-            DialogResult = true;
-        }
-
-        private void LayerSettingsCancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
+            layerSettingsViewModel.CloseWindow += (s, result) =>
+            {
+                DialogResult = result;
+                Close();
+            };
         }
     }
 }

@@ -7,35 +7,21 @@ using GIS.Classes.ViewModels;
 using GIS.Windows;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
-using System.Net.WebSockets;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace GIS
 {
-    public enum MapMode
-    {
-        Move,
-        Select,
-        Draw
-    }
 
-
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private MapMode currentMapMode = MapMode.Move;
@@ -96,8 +82,9 @@ namespace GIS
                 {
                     Name = System.IO.Path.GetFileName(filePath)
                 };
-
                 ParseGeoJSON(newLayer, text);
+                newLayer.AnalyzeFeatureProperties();
+                newLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(newLayer.GeoType);
 
                 layersList.Add(newLayer);
 
@@ -349,18 +336,19 @@ namespace GIS
 
             switch (selectedLayer.GeoType) {
 
-                case "Point":
+                case GeometryType.Point:
                     drawingService.DrawPoint(position);
                     break;
                 
-                case "LineString":
+                case GeometryType.LineString:
                     drawingService.DrawLine(position);
                     break;
 
-                case "Polygon":
+                case GeometryType.Polygon:
                     drawingService.DrawPolygon(position);
                     break;
             };
+
 
             Draw();
         }
@@ -572,8 +560,15 @@ namespace GIS
 
         private void OpenLayerSettingWindow(Layer layer)
         {
-            var settingsWindow = new LayerSettingsWindow(layer);
-            settingsWindow.ShowDialog();
+            var LSViewModel = new LayerSettingsViewModel(layer);
+            var settingsWindow = new LayerSettingsWindow(LSViewModel);
+
+            if (settingsWindow.ShowDialog() == true)
+            {
+                Draw();
+
+                StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
+            }
         }
         private void OpenLayerAttributesTableWindow(Layer layer)
         {
@@ -766,8 +761,9 @@ namespace GIS
                 {
                     Name = CLViewModel.LayerName,
                     GeoType = CLViewModel.GeoType,
+                    FeatureProperties = CLViewModel.Attributes
                 };
-                // TODO: Добавить в Layer учёт атрибутов
+
                 layersList.Add(newLayer);
                 Draw();
 

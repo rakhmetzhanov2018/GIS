@@ -10,23 +10,23 @@ namespace GIS.Classes.Factories
 {
     public static class DefaultStyleFactory
     {
-        public static LayerStyle CreateDefaultStyle(string type)
+        public static LayerStyle CreateDefaultStyle(GeometryType type)
         {
             return type switch
             {
-                "Point" => new PointStyle
+                GeometryType.Point => new PointStyle
                 {
                     Opacity = 1.0,
                     MainColor = Colors.Red,
                     Size = 6
                 },
-                "LineString" => new LineStringStyle
+                GeometryType.LineString => new LineStringStyle
                 {
                     Opacity = 1.0,
                     MainColor = Colors.Black,
                     StrokeThickness = 4
                 },
-                "Polygon" => new PolygonStyle
+                GeometryType.Polygon => new PolygonStyle
                 {
                     Opacity = 1.0,
                     MainColor = Colors.Blue,

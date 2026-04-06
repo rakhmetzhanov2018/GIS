@@ -14,16 +14,20 @@ using System.Windows.Input;
 
 namespace GIS.Classes.ViewModels
 {
-    public class CreateNewLayerViewModel : INotifyPropertyChanged
+    public class CreateNewLayerViewModel : ViewModelBase, INotifyPropertyChanged, IAttributeEditorViewModel
     {
         private string _layerName;
-        private string _geoType;
+        private GeometryType _geoType;
         private FeatureProperty _selectedAttribute;
         private string _newAttrubuteName;
-        private string _newAttrubuteType;
+        private AttributeDataType _newAttrubuteType;
         private string _newAttributeDefaultValue;
 
         public ObservableCollection<FeatureProperty> Attributes { get; set; }
+        public IEnumerable<AttributeDataType> DTypes => 
+            Enum.GetValues(typeof(AttributeDataType)).Cast<AttributeDataType>();
+        public IEnumerable<GeometryType> GTypes => 
+            Enum.GetValues(typeof(GeometryType)).Cast<GeometryType>();
 
         public string LayerName
         {
@@ -31,7 +35,7 @@ namespace GIS.Classes.ViewModels
             set => SetField(ref _layerName, value);
         }
 
-        public string GeoType
+        public GeometryType GeoType
         {
             get => _geoType;
             set => SetField(ref _geoType, value);
@@ -49,7 +53,7 @@ namespace GIS.Classes.ViewModels
             set => SetField(ref _newAttrubuteName, value);
         }
 
-        public string NewAttributeType
+        public AttributeDataType NewAttributeType
         {
             get => _newAttrubuteType;
             set => SetField(ref _newAttrubuteType, value);
@@ -83,18 +87,18 @@ namespace GIS.Classes.ViewModels
             Attributes.Add(new FeatureProperty
             {
                 Name = NewAttributeName,
-                DataType = NewAttributeType,
+                DataType = NewAttributeType.ToString(),
                 DefaultValue = NewAttributeDefaultValue
             });
 
             NewAttributeName = string.Empty;
-            NewAttributeType = string.Empty;
+            NewAttributeType = AttributeDataType.String;
             NewAttributeDefaultValue = string.Empty;
         }
 
         private bool CanAddAttribute()
         {
-            return !string.IsNullOrWhiteSpace(NewAttributeName) && !string.IsNullOrWhiteSpace(NewAttributeType);
+            return !string.IsNullOrWhiteSpace(NewAttributeName);
         }
 
         private void RemoveSelectedAttribute()
@@ -114,27 +118,19 @@ namespace GIS.Classes.ViewModels
 
         private bool CanApply()
         {
-            return !string.IsNullOrWhiteSpace(LayerName) && !string.IsNullOrEmpty(GeoType); 
+            return !string.IsNullOrWhiteSpace(LayerName); 
         }
 
         private void Cancel()
         {
             CloseWindow?.Invoke(this, false);
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string protertyName = "")
+        protected new bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return false;
 
             field = value;
-            OnPropertyChanged();
+            OnPropertyChanged(propertyName);
 
             (AddAttributeCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (RemoveSelectedAttributeCommand as RelayCommand)?.RaiseCanExecuteChanged();
