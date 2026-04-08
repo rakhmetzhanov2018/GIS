@@ -1,22 +1,16 @@
-﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.Factories;
+﻿using GIS.Classes.Factories;
 using GIS.Classes.Main;
-using GIS.Classes.Managers;
 using GIS.Classes.Services;
 using GIS.Classes.ViewModels;
+using GIS.Services;
 using GIS.Windows;
 using Microsoft.Win32;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Reflection.Emit;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace GIS
@@ -24,33 +18,40 @@ namespace GIS
 
     public partial class MainWindow : Window
     {
+        private FileService fileService;
+        private LayerManager layerManager;
+        private CanvasManager canvasManager;
+        private SelectionManager selectionManager;
+
         private MapMode currentMapMode = MapMode.Move;
-
         private bool isSelecting = false;
-        private Rectangle selectionRectangle;
-
-        private bool _isLeftMouseButtonDown = false;
-        private Point _leftMouseButtonDownPoint;
-
-        private DrawingService drawingService;
+        private bool isLeftMouseButtonDown = false;
+        private Point leftMouseButtonDownPoint;
 
         private bool isSelectionUpdated = false;
 
-        public static ObservableCollection<Layer> layersList = [];
         public MainWindow()
         {
             InitializeComponent();
 
             DataContext = this;
 
-            LayerTreeView.ItemsSource = layersList;
+            fileService = new FileService();
+            layerManager = new LayerManager();
+            canvasManager = new CanvasManager(MapCanvas, layerManager.layersList);
+            selectionManager = new SelectionManager(MapCanvas, layerManager.layersList);
 
-            CreateSelectionRectangle();
-
-            drawingService = new DrawingService(MapCanvas);
+            LayerTreeView.ItemsSource = layerManager.layersList;
         }
-
-        #region Загрузка слоёв
+        private void MapCanvas_Loaded(object sender, RoutedEventArgs e)
+        {
+            // начальные координаты 1:5000
+            MapToCanvasTranslator.CanvasSize = MapCanvas.RenderSize;
+            MapToCanvasTranslator.Bounds = new GeoBounds(37.615, 37.63742, 55.753, 55.788);
+            MapToCanvasTranslator.CalculateRatios();
+            MapToCanvasTranslator.ResetGlobalOffsets();
+            UpdateScale();
+        }
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
         {
             OpenFileDialog openFileDialog = new()
@@ -59,37 +60,15 @@ namespace GIS
                 Multiselect = false,
                 Title = "Выберите GeoJSON файл"
             };
-
-
             if (openFileDialog.ShowDialog() == true)
             {
-                string filePath = openFileDialog.FileName;
-                string text = "";
-
-                var fileStream = openFileDialog.OpenFile();
-
-                try
-                {
-                    using StreamReader streamReader = new(fileStream);
-                    text = streamReader.ReadToEnd();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-
-                Layer newLayer = new()
-                {
-                    Name = System.IO.Path.GetFileName(filePath)
-                };
-                ParseGeoJSON(newLayer, text);
+                Layer newLayer = fileService.LoadGeoJsonFile(openFileDialog.FileName);
                 newLayer.AnalyzeFeatureProperties();
                 newLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(newLayer.GeoType);
-
-                layersList.Add(newLayer);
+                layerManager.AddLayer(newLayer);
 
                 MapToCanvasTranslator.ResetGlobalOffsets();
-                Draw();
+                canvasManager.DrawAll();
 
                 StatusTextBox.Text = "Добавлен новый слой";
             }
@@ -99,428 +78,120 @@ namespace GIS
             }
         }
 
-        #endregion Загрузка слоёв
-
-        #region Парсинг GeoJSON
-
-        private void ParseGeoJSON(Layer layer, string geoJSON)
-        {
-            GeoBounds bounds = new GeoBounds();
-
-            var doc = JsonDocument.Parse(geoJSON);
-            var root = doc.RootElement;
-            var type = root.GetProperty("type").GetString();
-
-            switch (type)
-            {
-                case "GeometryCollection":
-                    ParseGeometryCollection(layer, root, ref bounds);
-                    break;
-
-                case "FeatureCollection":
-                    ParseFeatureCollection(layer, root, ref bounds);
-                    break;
-
-                case "Feature":
-                    layer.AddObject(ParseFeature(root, ref bounds));
-                    break;
-            }
-
-            MapToCanvasTranslator.Bounds = bounds;
-            MapToCanvasTranslator.CanvasSize = MapCanvas.RenderSize;
-            MapToCanvasTranslator.CalculateRatios();
-
-            layer.Bounds = bounds;
-        }
-
-        private void ParseFeatureCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
-        {
-            foreach (JsonElement feature in root.GetProperty("features").EnumerateArray())
-            {
-                if (feature.GetProperty("geometry").GetProperty("type").ToString() == "MultiPolygon")
-                    ParseMultiPolygon(layer, feature.GetProperty("geometry"), ref bounds);
-                else
-                    layer.AddObject(ParseFeature(feature, ref bounds));
-            }
-        }
-
-        private Feature ParseFeature(JsonElement root, ref GeoBounds bounds)
-        {
-            GeoGraphicObject geo = GeoGraphicObject.Parse(root.GetProperty("geometry"));
-            Dictionary<String, String> dict = ParseProperties(root.GetProperty("properties"));
-            
-            geo.GetBounds(ref bounds);
-
-            return new Feature(geo, dict);
-        }
-
-        private void ParseGeometryCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
-        {
-            foreach (JsonElement feature in root.GetProperty("geometries").EnumerateArray())
-            {
-                switch (feature.GetProperty("type").GetString())
-                {
-                    case "MultiPolygon":
-                        ParseMultiPolygon(layer, feature, ref bounds);
-                        break;
-
-                    case "MultiLineString":
-                        // TODO
-                        break;
-
-                    case "MultiPoint":
-                        // TODO
-                        break;
-
-                    case "Point":
-                    case "LineString":
-                    case "Polygon":
-                        layer.AddObject(ParseFeature(feature, ref bounds));
-                        break;
-                }
-            }
-        }
-        private void ParseMultiPolygon(Layer layer, JsonElement root, ref GeoBounds bounds)
-        {
-            var coords = root.GetProperty("coordinates");
-
-            foreach (JsonElement polygons_coords in coords.EnumerateArray())
-            {
-                GeoGraphicPolygon geoPolygon = GeoGraphicPolygon.Parse(polygons_coords);
-                geoPolygon.GetBounds(ref bounds);
-
-                layer.AddObject(new Feature(geoPolygon, []));
-            }
-        }
-
-        private Dictionary<String, String> ParseProperties(JsonElement root)
-        {
-            var dict = new Dictionary<String, String>();
-
-            foreach (var prop in root.EnumerateObject())
-            {
-                dict[prop.Name] = prop.Value.ToString();
-            }
-
-            return dict;
-        }
-
-        #endregion Парсинг GeoJSON
-
         #region Управление MapCanvas
-
-        #region MapCanvas_MouseMove
         private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
         {
             var currentMousePoint = e.GetPosition(MapCanvas);
-
             CoordinatesTextBox.Text = $"Координаты: {currentMousePoint.X - MapToCanvasTranslator.GlobalOffsetX:f0}," +
                 $" {currentMousePoint.Y - MapToCanvasTranslator.GlobalOffsetY:f0}";
-
             UpdateCurrentMouseCoordsDisplay(currentMousePoint);
 
             switch (currentMapMode)
             {
                 case MapMode.Move:
-                    MoveMode_MouseMove(currentMousePoint, e);
+                    canvasManager.HandleMoveMode(currentMousePoint, e,
+                        ref isLeftMouseButtonDown, ref leftMouseButtonDownPoint);
                     break;
 
                 case MapMode.Select:
-                    SelectMode_MouseMove(currentMousePoint, e);
+                    if (isSelecting && isLeftMouseButtonDown && 
+                    e.LeftButton == MouseButtonState.Pressed)
+                        selectionManager.UpdateRectangleSelection(currentMousePoint);
                     break;
 
                 case MapMode.Draw:
-                    DrawMode_MouseMove(currentMousePoint, e);
+                    if (canvasManager.IsDrawingLines)
+                        canvasManager.UpdateDrawingLine(currentMousePoint);
+                    else if (canvasManager.IsDrawingPolygons)
+                        canvasManager.UpdateDrawingPolygon(currentMousePoint);
                     break;
             }
         }
-        private void MoveMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
-        {
-            var offset = currentMousePoint - _leftMouseButtonDownPoint;
-
-            if (_isLeftMouseButtonDown && e.LeftButton == MouseButtonState.Pressed)
-            {
-                MapToCanvasTranslator.GlobalOffsetX += offset.X;
-                MapToCanvasTranslator.GlobalOffsetY += offset.Y;
-
-                foreach (Layer layer in layersList)
-                {
-                    layer.UpdateAll();
-                }
-
-                _leftMouseButtonDownPoint = currentMousePoint;
-            }
-            else if (e.LeftButton != MouseButtonState.Pressed)
-            {
-                _isLeftMouseButtonDown = false;
-                MapCanvas.Cursor = Cursors.Arrow;
-            }
-        }
-        private void SelectMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
-        {
-            if (!isSelecting) return;
-
-            if (_isLeftMouseButtonDown && e.LeftButton == MouseButtonState.Pressed)
-            {
-                UpdateSelectionRectangle(currentMousePoint);
-            }
-        }
-        private void DrawMode_MouseMove(Point currentMousePoint, MouseEventArgs e)
-        {
-            if (drawingService.IsDrawingLines)
-            {
-                drawingService.UpdateDrawingLine(currentMousePoint);
-            }
-            else if (drawingService.IsDrawingPolygons)
-            {
-                drawingService.UpdateDrawingPolygon(currentMousePoint);
-            }
-        }
-
-        #endregion MapCanvas_MouseMove
-
-        #region MapCanvas_MouseDown
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed) return;
-
             MapCanvas.Focus();
-
             var position = e.GetPosition(MapCanvas);
 
             switch (currentMapMode)
             {
                 case MapMode.Move:
-                    MoveMode_MouseDown(position);
+                    isLeftMouseButtonDown = true;
+                    leftMouseButtonDownPoint = position;
+                    MapCanvas.Cursor = Cursors.Hand;
                     break;
 
                 case MapMode.Select:
-                    SelectMode_MouseDown(position);
+                    var hit = VisualTreeHelper.HitTest(MapCanvas, position);
+
+                    if (hit.VisualHit is Shape shape && shape.Tag is Feature feature)
+                    {
+                        selectionManager.SelectFeature(feature);
+                        ShowFeatureInfo(feature);
+                        SelectFeatureInTreeView(feature);
+                    }
+                    else
+                    {
+                        selectionManager.ClearSelection();
+
+                        FeaturePropertiesGrid.Visibility = Visibility.Hidden;
+                        isSelecting = true;
+                        isLeftMouseButtonDown = true;
+                        leftMouseButtonDownPoint = position;
+
+                        selectionManager.StartRectangleSelection(position);
+                    }
                     break;
 
                 case MapMode.Draw:
-                    DrawMode_MouseDown(position);
+                    if (LayerTreeView.SelectedItem is Layer selectedLayer)
+                    {
+                        canvasManager.SetSelectedLayer(selectedLayer);
+                        switch (selectedLayer.GeoType)
+                        {
+                            case GeometryType.Point:
+                                canvasManager.DrawPoint(position);
+                                break;
+                            case GeometryType.LineString:
+                                canvasManager.DrawLine(position);
+                                break;
+                            case GeometryType.Polygon:
+                                canvasManager.DrawPolygon(position);
+                                break;
+                        }
+                    }
+                    canvasManager.DrawAll();
                     break;
             }
         }
-        private void MoveMode_MouseDown(Point position)
-        {
-            _isLeftMouseButtonDown = true;
-            _leftMouseButtonDownPoint = position;
-            MapCanvas.Cursor = Cursors.Hand;
-        }
-        private void SelectMode_MouseDown(Point position)
-        {
-            var hit = VisualTreeHelper.HitTest(MapCanvas, position);
-
-            if (hit.VisualHit is Shape shape && shape.Tag is Feature feature)
-            {
-                ClearSelection();
-                feature.IsSelected = true;
-                ShowFeatureInfo(feature);
-
-                SelectFeatureInTreeView(feature);
-            }
-            else
-            {
-                ClearSelection();
-                StartSelection(position);
-            }
-        }
-        private void DrawMode_MouseDown(Point position)
-        {
-            if (LayerTreeView.SelectedItem is not Layer selectedLayer)
-                return;
-
-            drawingService.SetSelectedLayer(selectedLayer);
-
-            switch (selectedLayer.GeoType) {
-
-                case GeometryType.Point:
-                    drawingService.DrawPoint(position);
-                    break;
-                
-                case GeometryType.LineString:
-                    drawingService.DrawLine(position);
-                    break;
-
-                case GeometryType.Polygon:
-                    drawingService.DrawPolygon(position);
-                    break;
-            };
-
-
-            Draw();
-        }
-
-        #endregion MapCanvas_MouseDown
-
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             var mousePos = e.GetPosition(MapCanvas);
-
-            double scaleDelta = e.Delta > 0 ? 1.1 : 1 / 1.1;
-
-            MapToCanvasTranslator.GlobalOffsetX =
-                mousePos.X - (mousePos.X - MapToCanvasTranslator.GlobalOffsetX) * scaleDelta;
-            MapToCanvasTranslator.GlobalOffsetY =
-                mousePos.Y - (mousePos.Y - MapToCanvasTranslator.GlobalOffsetY) * scaleDelta;
-            MapToCanvasTranslator.GlobalScale *= scaleDelta;
-
-            foreach (Layer layer in layersList)
-            {
-                layer.UpdateAll();
-            }
-
+            canvasManager.HandleMouseWheel(mousePos, e.Delta);
             UpdateScale();
-        }
-        private void ZoomToLayer(Layer layer)
-        {
-            MapToCanvasTranslator.Bounds = layer.Bounds;
-            MapToCanvasTranslator.ResetGlobalOffsets();
-            MapToCanvasTranslator.CalculateRatios();
-            Draw();
         }
         private void LayerListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (LayerTreeView.SelectedItem is Layer layer)
             {
-                ZoomToLayer(layer);
+                canvasManager.ZoomToLayer(layer);
             }
         }
-
         private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (currentMapMode == MapMode.Select && e.LeftButton == MouseButtonState.Released)
             {
-                EndSelection(e.GetPosition(MapCanvas));
+                isSelecting = false;
+                isLeftMouseButtonDown = false;
+                selectionManager.EndRectangleSelection();
+
+                var selectedFeatures = selectionManager.GetSelectedFeatures();
+                if (selectedFeatures.Count > 0)
+                    ShowFeatureInfo(selectedFeatures[selectedFeatures.Count - 1]);
             }
         }
 
         #endregion Управление MapCanvas
-
-        #region Выделение фигур прямоугольником
-
-        private void CreateSelectionRectangle()
-        {
-            selectionRectangle = new Rectangle
-            {
-                Stroke = Brushes.Gray,
-                StrokeThickness = 2,
-                StrokeDashArray = new DoubleCollection { 4, 2 },
-                Fill = new SolidColorBrush(Color.FromArgb(40, 30, 144, 255)),
-                IsHitTestVisible = false,
-                Visibility = Visibility.Collapsed
-            };
-
-            MapCanvas.Children.Add(selectionRectangle);
-            Canvas.SetZIndex(selectionRectangle, 100);
-        }
-        private void StartSelection(Point startPoint)
-        {
-            isSelecting = true;
-            _isLeftMouseButtonDown = true;
-            _leftMouseButtonDownPoint = startPoint;
-
-            Canvas.SetLeft(selectionRectangle, startPoint.X);
-            Canvas.SetTop(selectionRectangle, startPoint.Y);
-
-            selectionRectangle.Width = 0;
-            selectionRectangle.Height = 0;
-
-            selectionRectangle.Visibility = Visibility.Visible;
-        }
-        private void UpdateSelectionRectangle(Point currentPoint)
-        {
-            if (!isSelecting) return;
-
-            var width = Math.Abs(currentPoint.X - _leftMouseButtonDownPoint.X);
-            var height = Math.Abs(currentPoint.Y - _leftMouseButtonDownPoint.Y);
-
-            Canvas.SetLeft(selectionRectangle, Math.Min(currentPoint.X, _leftMouseButtonDownPoint.X));
-            Canvas.SetTop(selectionRectangle, Math.Min(currentPoint.Y, _leftMouseButtonDownPoint.Y));
-
-            selectionRectangle.Width = width;
-            selectionRectangle.Height = height;
-        }
-        private void EndSelection(Point endPoint)
-        {
-            isSelecting = false;
-            _isLeftMouseButtonDown = false;
-
-            selectionRectangle.Visibility = Visibility.Collapsed;
-
-            var selectedFeatures = FindSelectedFeatures();
-
-            foreach( var feature in selectedFeatures )
-            {
-                feature.IsSelected = true;
-            }
-        }
-        private List<Feature> FindSelectedFeatures()
-        {
-
-            List<Feature> selectedFeatures = new List<Feature>();
-
-            Rect selectionArea = new Rect
-            {
-                X = Canvas.GetLeft(selectionRectangle),
-                Y = Canvas.GetTop(selectionRectangle),
-                Width = selectionRectangle.Width,
-                Height = selectionRectangle.Height
-            };
-
-            foreach (Layer layer in layersList)
-            {
-                foreach (Feature feature in layer.ObjectList)
-                {
-                    if (IsFigureInArea(feature.Geometry.Figure, selectionArea))
-                    {
-                        selectedFeatures.Add(feature);
-                    }
-                }
-            }
-
-            return selectedFeatures;
-
-        }
-        private bool IsFigureInArea(Shape figure, Rect area)
-        {
-            if (figure is Ellipse ellipse)
-            {
-                return area.Contains(Canvas.GetLeft(ellipse) + ellipse.Width / 2, 
-                                     Canvas.GetTop(ellipse) + ellipse.Height / 2);
-            }
-
-            RectangleGeometry rectGeo = new RectangleGeometry(area);
-            Geometry figureGeo = figure.RenderedGeometry;
-
-            return rectGeo.FillContainsWithDetail(figureGeo) != IntersectionDetail.Empty;
-        }
-
-        #endregion Выделение фигур прямоугольником
-
-        #region Отрисовка фигур
-        private void Draw()
-        {
-            foreach (var layer in layersList)
-            {
-                layer.DrawAll(MapCanvas);
-            }
-
-            ApplyStylesForAllLayers();
-            UpdateScale();
-        }
-
-        private void ApplyStylesForAllLayers()
-        {
-            foreach (var layer in layersList)
-            {
-                layer.ApplyStyleToAllFeatures();
-            }
-        }
-
-        #endregion Отрисовка фигур
 
         #region Обновление статус-бара
         private void UpdateScale()
@@ -540,6 +211,7 @@ namespace GIS
 
             MouseGeoCoordsTextBox.Text = $"Текущие координаты: {geoCoords[0]:F6}°; {geoCoords[1]:F6}°";
         }
+        
         #endregion Обновление статус-бара
 
         #region Управление кнопками слоёв
@@ -547,7 +219,14 @@ namespace GIS
         {
             if (sender is Button button && button.Tag is Layer layer)
             {
-                OpenLayerSettingWindow(layer);
+                var LSViewModel = new LayerSettingsViewModel(layer);
+                var settingsWindow = new LayerSettingsWindow(LSViewModel);
+
+                if (settingsWindow.ShowDialog() == true)
+                {
+                    canvasManager.DrawAll();
+                    StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
+                }
             }
         }
         private void LayerTableButton_Click(object sender, RoutedEventArgs e)
@@ -555,19 +234,6 @@ namespace GIS
             if (sender is Button button && button.Tag is Layer layer)
             {
                 OpenLayerAttributesTableWindow(layer);
-            }
-        }
-
-        private void OpenLayerSettingWindow(Layer layer)
-        {
-            var LSViewModel = new LayerSettingsViewModel(layer);
-            var settingsWindow = new LayerSettingsWindow(LSViewModel);
-
-            if (settingsWindow.ShowDialog() == true)
-            {
-                Draw();
-
-                StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
             }
         }
         private void OpenLayerAttributesTableWindow(Layer layer)
@@ -580,53 +246,28 @@ namespace GIS
         {
             if (sender is Button button && button.CommandParameter is Layer layer)
             {
-                int index = layersList.IndexOf(layer);
-
-                if (index > 0)
-                {
-                    layersList.Move(index, index - 1);
-                }
-
-                Draw();
+                layerManager.MoveLayerUp(layer);
+                canvasManager.DrawAll();
             }
         }
         private void LayerZIndexDown_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.CommandParameter is Layer layer)
             {
-                int index = layersList.IndexOf(layer);
-
-                if (index < layersList.Count - 1)
-                {
-                    layersList.Move(index, index + 1);
-                }
-
-                Draw();
+                layerManager.MoveLayerDown(layer);
+                canvasManager.DrawAll();
             }
         }
+        
         #endregion Управление кнопками слоёв
 
         #region FeaturePropertiesDataGrid
-        private void ClearSelection()
-        {
-            foreach (var layer in layersList)
-            {
-                foreach (var feature in layer.ObjectList)
-                {
-                    feature.IsSelected = false;
-                }
-                layer.IsSelected = false;
-            }
-
-            FeaturePropertiesGrid.Visibility = Visibility.Hidden;
-        }
         private void ShowFeatureInfo(Feature feature)
         {
             FeaturePropertiesGrid.Visibility = Visibility.Visible;
 
             FillTable(feature);
         }
-
         private void FillTable(Feature feature)
         {
             FeaturePropertiesDataGrid.Items.Clear();
@@ -640,6 +281,7 @@ namespace GIS
                 });
             }           
         }
+        
         #endregion FeaturePropertiesDataGrid
 
         #region Экспериментальные/временные функции
@@ -647,30 +289,31 @@ namespace GIS
         {
             switch (e.Key)
             {
-                case Key.Up:
-                    MapToCanvasTranslator.GlobalOffsetY += 5;
-                    break;
-                case Key.Down:
-                    MapToCanvasTranslator.GlobalOffsetY -= 5;
-                    break;
-                case Key.Right:
-                    MapToCanvasTranslator.GlobalOffsetY += 5;
-                    break;
-                case Key.Left:
-                    MapToCanvasTranslator.GlobalOffsetY -= 5;
-                    break;
+                //case Key.Up:
+                //    MapToCanvasTranslator.GlobalOffsetY += 15;
+                //    break;
+                //case Key.Down:
+                //    MapToCanvasTranslator.GlobalOffsetY -= 15;
+                //    break;
+                //case Key.Right:
+                //    MapToCanvasTranslator.GlobalOffsetX -= 15;
+                //    break;
+                //case Key.Left:
+                //    MapToCanvasTranslator.GlobalOffsetX += 15;
+                //    break;
                 case Key.Escape:
-                    drawingService.EndDrawing();
+                    canvasManager.EndDrawing();
                     break;
                 default:
                     return;
             }
+            
 
-            foreach (Layer layer in layersList)
+            foreach (Layer layer in layerManager.layersList)
             {
                 layer.UpdateAll();
             }
-            Draw();
+            canvasManager.DrawAll();
         }
         private void MapModeRadioButton_Click(object sender, EventArgs e)
         {
@@ -718,7 +361,7 @@ namespace GIS
         }
         private void DeleteFeature(Feature selectedItem)
         {
-            var layer = FindLayerByFeature(selectedItem);
+            var layer = layerManager.FindLayerByFeature(selectedItem);
 
             layer.DeleteObject(selectedItem);
             MapCanvas.Children.Remove(selectedItem.Geometry.Figure);
@@ -729,7 +372,7 @@ namespace GIS
         }
         private void DeleteLayer(Layer layer)
         {
-            layersList.Remove(layer);
+            layerManager.RemoveLayer(layer);
 
             foreach (var shape in layer.ObjectList)
             {
@@ -737,16 +380,6 @@ namespace GIS
             }
 
             StatusTextBox.Text = $"Слой '{layer.Name}' удалён";
-        }
-
-        private Layer FindLayerByFeature(Feature feature)
-        {
-            foreach (Layer layer in layersList)
-            {
-                if (layer.ObjectList.Contains(feature))
-                    return layer;
-            }
-            throw new Exception("Попытка удалить уже удалённый объект.");
         }
 
         #endregion Функции удаления слоя/объекта
@@ -764,21 +397,15 @@ namespace GIS
                     FeatureProperties = CLViewModel.Attributes
                 };
 
-                layersList.Add(newLayer);
-                Draw();
+                layerManager.AddLayer(newLayer);
+                canvasManager.DrawAll();
 
                 StatusTextBox.Text = $"Добавлен новый слой {newLayer.Name}";
             }
         }
-
-        private void AddObjectToLayer_MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void SelectFeatureInTreeView(Feature selectedFeature)
         {
-            var layer = FindLayerByFeature(selectedFeature);
+            var layer = layerManager.FindLayerByFeature(selectedFeature);
 
             if (LayerTreeView.ItemContainerGenerator.ContainerFromItem(layer) is TreeViewItem layerItem)
             {
@@ -791,7 +418,6 @@ namespace GIS
                 featureItem.Focus();
             }
         }
-
         private void LayerTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (isSelectionUpdated)
@@ -803,19 +429,18 @@ namespace GIS
 
             if (e.NewValue is Layer selectedLayer)
             {
-                ClearSelection();
+                selectionManager.ClearSelection();
                 selectedLayer.IsSelected = true;
             }
             else if (e.NewValue is Feature selectedFeature)
             {
-                ClearSelection();
+                selectionManager.ClearSelection();
                 selectedFeature.IsSelected = true;
                 ShowFeatureInfo(selectedFeature);
             }
 
             isSelectionUpdated = false;
         }
-
         private void ImportImageButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new()
@@ -825,53 +450,13 @@ namespace GIS
                 Multiselect = false,
             };
 
-
-
-            
             if (openFileDialog.ShowDialog() == true)
             {
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(openFileDialog.FileName);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
+                var rasterLayer = fileService.ImportImage(openFileDialog.FileName);
 
-                Image image = new Image
-                {
-                    Source = bitmap,
-                    Width = bitmap.Width,
-                    Height = bitmap.Height,
-                    Stretch = Stretch.Uniform,
-                    Tag = openFileDialog.FileName
-                };
-
-                Canvas.SetLeft(image, 0);
-                Canvas.SetTop(image, 0);
-
-                RasterLayer rasterLayer = new RasterLayer(image, openFileDialog.FileName);
-                
-                var window = new MapImageSettingsWindow();
-
-
-                if (window.ShowDialog() == true)
-                {
-                    rasterLayer.Bounds = window.ImageBounds;
-                }
-                else
-                {
-                    rasterLayer.Bounds = new GeoBounds
-                    {
-                        MinLon = -180,
-                        MaxLon = 180,
-                        MinLat = -90,
-                        MaxLat = 90
-                    };
-                }
-                MapToCanvasTranslator.ResetGlobalOffsets();
-                layersList.Add(rasterLayer);
-                MapCanvas.Children.Add(image);
-
-                Draw();
+                layerManager.AddLayer(rasterLayer);
+                canvasManager.DrawAll();
+                StatusTextBox.Text = $"Импортировано изображение: {rasterLayer.Name}";
             }
         }
     }

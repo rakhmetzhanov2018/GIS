@@ -19,7 +19,7 @@ namespace GIS.Classes.Services
             double xRatio = CanvasSize.Width / (Bounds.MaxLon - Bounds.MinLon);
             Ratio = Math.Min(yRatio, xRatio);
         }
-        static public Point TranslateCoords(double X, double Y)
+        static public Point TranslateFromGeoToCanvas(double X, double Y)
         {
             return new Point((X - Bounds.MinLon) * Ratio, 
                CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
@@ -30,9 +30,10 @@ namespace GIS.Classes.Services
             double Lat = (Bounds.MaxLat + Bounds.MinLat) / 2 * Math.PI / 180;
 
             double sqSinLon = Math.Pow(Math.Sin(deltaLon / 2), 2);
+            double sqCosLat = Math.Pow(Math.Cos(Lat), 2);
 
             double d = 2 * EARTH_RADIUS_CM * 
-                Math.Asin(Math.Sqrt(sqSinLon * Math.Pow(Math.Cos(Lat), 2)));
+                Math.Asin(Math.Sqrt(sqSinLon * sqCosLat));
 
             double pixelsPerCM = CanvasSize.Width / 96.0 * 2.54;
 
@@ -48,7 +49,6 @@ namespace GIS.Classes.Services
 
             return [lon, lat];
         }
-
         static public List<double[]> TranslateFromCanvasToGeo(List<Point> points)
         {
             var newPoints = new List<double[]>();

@@ -61,11 +61,6 @@
 
                 <TreeView.Resources>
                     <ContextMenu x:Key="LayerContextMenu">
-                        <MenuItem Header="Добавить объект" Click="AddObjectToLayer_MenuItem_Click">
-                            <MenuItem.Icon>
-                                <TextBlock Text="+"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
                     </ContextMenu>
                     
                     
@@ -82,7 +77,7 @@
 
 
                     <HierarchicalDataTemplate DataType="{x:Type classes:Layer}" ItemsSource="{Binding ObjectList}">
-                        <Grid HorizontalAlignment="Stretch" ContextMenu="{StaticResource LayerContextMenu}">
+                        <Grid HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>    
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="110"/>
@@ -165,7 +160,7 @@
         </StatusBar>
         
         <Grid Grid.Row="0" Grid.Column="1">
-            <Canvas x:Name="MapCanvas" Margin="10" Focusable="True" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown" MouseUp="MapCanvas_MouseUp"/>
+            <Canvas x:Name="MapCanvas" Margin="10" Focusable="True" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown" MouseUp="MapCanvas_MouseUp" Loaded="MapCanvas_Loaded"/>
             
             <Grid x:Name="FeaturePropertiesGrid" Visibility="Hidden">
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="White">

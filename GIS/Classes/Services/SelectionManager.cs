@@ -1,0 +1,169 @@
+﻿using GIS.Classes.Main;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
+
+namespace GIS.Services
+{
+    public class SelectionManager
+    {
+        private Canvas mapCanvas;
+        private ObservableCollection<Layer> layersList;
+        private Rectangle selectionRectangle;
+        private List<Feature> selectedFeatures = new();
+
+        public Feature LastSelectedFeature { get; private set; }
+
+        public SelectionManager(Canvas canvas, ObservableCollection<Layer> layers)
+        {
+            mapCanvas = canvas;
+            layersList = layers;
+            CreateSelectionRectangle();
+        }
+
+        private void CreateSelectionRectangle()
+        {
+            selectionRectangle = new Rectangle
+            {
+                Stroke = Brushes.Gray,
+                StrokeThickness = 2,
+                StrokeDashArray = new DoubleCollection { 4, 2 },
+                Fill = new SolidColorBrush(Color.FromArgb(40, 30, 144, 255)),
+                IsHitTestVisible = false,
+                Visibility = Visibility.Collapsed
+            };
+            mapCanvas.Children.Add(selectionRectangle);
+            Canvas.SetZIndex(selectionRectangle, 100);
+        }
+
+        public void ClearSelection()
+        {
+            foreach (var layer in layersList)
+            {
+                foreach (var feature in layer.ObjectList)
+                {
+                    feature.IsSelected = false;
+                }
+                layer.IsSelected = false;
+            }
+            selectedFeatures.Clear();
+            LastSelectedFeature = null;
+        }
+
+        public void SelectFeature(Feature feature)
+        {
+            ClearSelection();
+            feature.IsSelected = true;
+            selectedFeatures.Add(feature);
+            LastSelectedFeature = feature;
+        }
+
+        public void StartRectangleSelection(Point startPoint)
+        {
+            Canvas.SetLeft(selectionRectangle, startPoint.X);
+            Canvas.SetTop(selectionRectangle, startPoint.Y);
+            selectionRectangle.Width = 0;
+            selectionRectangle.Height = 0;
+            selectionRectangle.Visibility = Visibility.Visible;
+        }
+
+        public void UpdateRectangleSelection(Point currentPoint)
+        {
+            double left = Canvas.GetLeft(selectionRectangle);
+            double top = Canvas.GetTop(selectionRectangle);
+
+            double width = currentPoint.X - left;
+            double height = currentPoint.Y - top;
+
+            if (width < 0)
+            {
+                Canvas.SetLeft(selectionRectangle, currentPoint.X);
+                selectionRectangle.Width = -width;
+            }
+            else
+            {
+                selectionRectangle.Width = width;
+            }
+
+            if (height < 0)
+            {
+                Canvas.SetTop(selectionRectangle, currentPoint.Y);
+                selectionRectangle.Height = -height;
+            }
+            else
+            {
+                selectionRectangle.Height = height;
+            }
+        }
+
+        public void EndRectangleSelection()
+        {
+            selectionRectangle.Visibility = Visibility.Collapsed;
+
+            if (selectionRectangle.Width < 5 && selectionRectangle.Height < 5)
+                return;
+
+            var selectedFeaturesList = FindSelectedFeatures();
+
+            foreach (var feature in selectedFeaturesList)
+            {
+                feature.IsSelected = true;
+                selectedFeatures.Add(feature);
+            }
+
+            if (selectedFeaturesList.Count > 0)
+                LastSelectedFeature = selectedFeaturesList.Last();
+        }
+
+        private List<Feature> FindSelectedFeatures()
+        {
+            List<Feature> foundFeatures = new List<Feature>();
+
+            Rect selectionArea = new Rect
+            {
+                X = Canvas.GetLeft(selectionRectangle),
+                Y = Canvas.GetTop(selectionRectangle),
+                Width = selectionRectangle.Width,
+                Height = selectionRectangle.Height
+            };
+
+            foreach (Layer layer in layersList)
+            {
+                foreach (Feature feature in layer.ObjectList)
+                {
+                    if (IsFigureInArea(feature.Geometry.Figure, selectionArea))
+                    {
+                        foundFeatures.Add(feature);
+                    }
+                }
+            }
+
+            return foundFeatures;
+        }
+
+        private bool IsFigureInArea(Shape figure, Rect area)
+        {
+            if (figure is Ellipse ellipse)
+            {
+                return area.Contains(Canvas.GetLeft(ellipse) + ellipse.Width / 2,
+                                     Canvas.GetTop(ellipse) + ellipse.Height / 2);
+            }
+
+            RectangleGeometry rectGeo = new RectangleGeometry(area);
+            Geometry figureGeo = figure.RenderedGeometry;
+
+            if (figureGeo != null)
+            {
+                return rectGeo.FillContainsWithDetail(figureGeo) != IntersectionDetail.Empty;
+            }
+
+            return false;
+        }
+
+        public List<Feature> GetSelectedFeatures() => selectedFeatures;
+    }
+}

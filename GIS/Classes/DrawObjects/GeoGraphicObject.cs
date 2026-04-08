@@ -33,7 +33,7 @@ namespace GIS.Classes.DrawObjects
 
             foreach (var coord in GeoCoords)
             {
-                Point graphicPoint = MapToCanvasTranslator.TranslateCoords(coord[0], coord[1]);
+                Point graphicPoint = MapToCanvasTranslator.TranslateFromGeoToCanvas(coord[0], coord[1]);
                 GraphicCoords.Add(graphicPoint);
             }
         }
