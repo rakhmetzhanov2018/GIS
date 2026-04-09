@@ -24,6 +24,12 @@ namespace GIS.Windows
         public MapImageSettingsWindow()
         {
             InitializeComponent();
+
+            Loaded += (s, e) =>
+            {
+                SizeToContent = SizeToContent.WidthAndHeight;
+                InvalidateMeasure();
+            };
         }
 
         private void LayerSettingsApplyButton_Click(object sender, RoutedEventArgs e)

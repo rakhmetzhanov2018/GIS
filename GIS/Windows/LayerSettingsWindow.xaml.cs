@@ -27,6 +27,12 @@ namespace GIS.Windows
         {
             InitializeComponent();
 
+            Loaded += (s, e) =>
+            {
+                SizeToContent = SizeToContent.WidthAndHeight;
+                InvalidateMeasure();
+            };
+
             DataContext = layerSettingsViewModel;
 
             layerSettingsViewModel.CloseWindow += (s, result) =>

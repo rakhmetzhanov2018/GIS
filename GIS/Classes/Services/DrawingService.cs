@@ -78,7 +78,7 @@ namespace GIS.Classes.Managers
             var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
 
             GeoGraphicPoint newGeo = new GeoGraphicPoint(geoCoords[0], geoCoords[1]);
-
+            
             CreateAttributeWindow(newGeo);
         }
         public void DrawLine(Point position)

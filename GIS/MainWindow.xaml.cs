@@ -366,8 +366,6 @@ namespace GIS
             layer.DeleteObject(selectedItem);
             MapCanvas.Children.Remove(selectedItem.Geometry.Figure);
 
-            CollectionViewSource.GetDefaultView(LayerTreeView.ItemsSource).Refresh();
-
             StatusTextBox.Text = $"Объект '{selectedItem.Name}' из слоя '{layer.Name}' удалён";
         }
         private void DeleteLayer(Layer layer)
@@ -394,7 +392,8 @@ namespace GIS
                 {
                     Name = CLViewModel.LayerName,
                     GeoType = CLViewModel.GeoType,
-                    FeatureProperties = CLViewModel.Attributes
+                    FeatureProperties = CLViewModel.Attributes,
+                    Bounds = new GeoBounds()
                 };
 
                 layerManager.AddLayer(newLayer);
@@ -452,7 +451,7 @@ namespace GIS
 
             if (openFileDialog.ShowDialog() == true)
             {
-                var rasterLayer = fileService.ImportImage(openFileDialog.FileName);
+                var rasterLayer = fileService.ImportImage(openFileDialog.FileName, MapCanvas);
 
                 layerManager.AddLayer(rasterLayer);
                 canvasManager.DrawAll();

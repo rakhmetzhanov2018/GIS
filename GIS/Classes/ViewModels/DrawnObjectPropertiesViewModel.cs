@@ -12,6 +12,7 @@ using System.Windows.Input;
 
 namespace GIS.Classes.ViewModels
 {
+    
     public class AttributeField : ViewModelBase
     {
         private string _value;
@@ -77,6 +78,10 @@ namespace GIS.Classes.ViewModels
 
             feature.DrawFigure(TargetCanvas);
             feature.SetVisibility(_layer.IsVisible);
+
+            var layerBounds = _layer.Bounds;
+            feature.Geometry.GetBounds(ref layerBounds);
+            _layer.Bounds = layerBounds;
 
             CloseWindow?.Invoke(this, true);
         }

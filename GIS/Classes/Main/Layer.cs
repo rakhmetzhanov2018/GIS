@@ -60,7 +60,7 @@ namespace GIS.Classes.Main
                 }
             }
         }
-        public List<Feature> ObjectList { get; } = new();
+        public ObservableCollection<Feature> ObjectList { get; } = new();
         public GeoBounds Bounds { get; set; }
         public GeometryType GeoType
         {

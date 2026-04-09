@@ -15,6 +15,7 @@ namespace GIS.Services
         private ObservableCollection<Layer> layersList;
         private Rectangle selectionRectangle;
         private List<Feature> selectedFeatures = new();
+        private Point _rectangleStartPoint;
 
         public Feature LastSelectedFeature { get; private set; }
 
@@ -64,6 +65,7 @@ namespace GIS.Services
 
         public void StartRectangleSelection(Point startPoint)
         {
+            _rectangleStartPoint = startPoint;
             Canvas.SetLeft(selectionRectangle, startPoint.X);
             Canvas.SetTop(selectionRectangle, startPoint.Y);
             selectionRectangle.Width = 0;
@@ -73,31 +75,14 @@ namespace GIS.Services
 
         public void UpdateRectangleSelection(Point currentPoint)
         {
-            double left = Canvas.GetLeft(selectionRectangle);
-            double top = Canvas.GetTop(selectionRectangle);
+            var width = Math.Abs(currentPoint.X - _rectangleStartPoint.X);
+            var height = Math.Abs(currentPoint.Y - _rectangleStartPoint.Y);
 
-            double width = currentPoint.X - left;
-            double height = currentPoint.Y - top;
+            Canvas.SetLeft(selectionRectangle, Math.Min(currentPoint.X, _rectangleStartPoint.X));
+            Canvas.SetTop(selectionRectangle, Math.Min(currentPoint.Y, _rectangleStartPoint.Y));
 
-            if (width < 0)
-            {
-                Canvas.SetLeft(selectionRectangle, currentPoint.X);
-                selectionRectangle.Width = -width;
-            }
-            else
-            {
-                selectionRectangle.Width = width;
-            }
-
-            if (height < 0)
-            {
-                Canvas.SetTop(selectionRectangle, currentPoint.Y);
-                selectionRectangle.Height = -height;
-            }
-            else
-            {
-                selectionRectangle.Height = height;
-            }
+            selectionRectangle.Width = width;
+            selectionRectangle.Height = height;
         }
 
         public void EndRectangleSelection()

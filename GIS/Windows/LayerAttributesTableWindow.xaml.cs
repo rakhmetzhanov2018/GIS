@@ -2,6 +2,7 @@
 using GIS.Classes.Main;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -27,12 +28,21 @@ namespace GIS
         {
             InitializeComponent();
 
+            Loaded += (s, e) =>
+            {
+                SizeToContent = SizeToContent.WidthAndHeight;
+                InvalidateMeasure();
+            };
+
             FillTable(layer.ObjectList);
         }
 
-        private void FillTable(List<Feature> ObjectList)
+        private void FillTable(ObservableCollection<Feature> ObjectList)
         {
             DataTable dt = new DataTable();
+
+            if (ObjectList.Count == 0)
+                return;
 
             foreach (var key in ObjectList[0].props.Keys)
             {

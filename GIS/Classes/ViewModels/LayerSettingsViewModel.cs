@@ -10,7 +10,7 @@ using System.Xml.Linq;
 
 namespace GIS.Classes.ViewModels
 {
-    public class LayerSettingsViewModel : ViewModelBase, INotifyPropertyChanged, IAttributeEditorViewModel
+    public class LayerSettingsViewModel : ViewModelBase, IAttributeEditorViewModel
     {
         private readonly Layer _layer;
 

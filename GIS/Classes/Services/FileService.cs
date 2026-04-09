@@ -123,7 +123,7 @@ namespace GIS.Services
             return dict;
         }
 
-        public RasterLayer ImportImage(string filePath)
+        public RasterLayer ImportImage(string filePath, Canvas mapCanvas)
         {
             BitmapImage bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -161,6 +161,8 @@ namespace GIS.Services
                     MaxLat = 90
                 };
             }
+
+            mapCanvas.Children.Add(image);
 
             return rasterLayer;
         }

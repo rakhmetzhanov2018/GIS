@@ -9,6 +9,13 @@ namespace GIS.Windows
         {
             InitializeComponent();
             DataContext = viewModel;
+
+            Loaded += (s, e) =>
+            {
+                SizeToContent = SizeToContent.WidthAndHeight;
+                InvalidateMeasure();
+            };
+
             viewModel.CloseWindow += (s, result) =>
             {
                 DialogResult = result;

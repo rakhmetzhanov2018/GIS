@@ -14,7 +14,7 @@ using System.Windows.Input;
 
 namespace GIS.Classes.ViewModels
 {
-    public class CreateNewLayerViewModel : ViewModelBase, INotifyPropertyChanged, IAttributeEditorViewModel
+    public class CreateNewLayerViewModel : ViewModelBase, IAttributeEditorViewModel
     {
         private string _layerName;
         private GeometryType _geoType;

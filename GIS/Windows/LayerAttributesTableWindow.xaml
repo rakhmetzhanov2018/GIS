@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS"
         mc:Ignorable="d"
-        Title="LayerAttributesTableWindow" Height="450" Width="800">
+        Title="LayerAttributesTableWindow" Height="450" Width="800" WindowStartupLocation="CenterScreen">
     <Grid>
         <DataGrid x:Name="LayerItemsDataGrid" AutoGenerateColumns="True" Margin="10" IsReadOnly="True" EnableColumnVirtualization="True"/>
     </Grid>
