@@ -49,13 +49,15 @@ namespace GIS.Classes.Managers
             {
                 Stroke = Brushes.Gray,
                 StrokeThickness = 4,
+                Opacity = 0.5
             };
 
             drawingPolygon = new Polygon
             {
                 Stroke = Brushes.Black,
                 StrokeThickness = 4,
-                Fill = Brushes.Gray
+                Fill = Brushes.Gray,
+                Opacity = 0.5
             };
 
             Canvas.SetZIndex(drawingLine, 101);
@@ -92,6 +94,7 @@ namespace GIS.Classes.Managers
                 {
                     Stroke = Brushes.Black,
                     StrokeThickness = 4,
+                    Opacity = 0.5
                 };
 
                 Canvas.SetZIndex(demoPolyLine, 100);
@@ -111,8 +114,9 @@ namespace GIS.Classes.Managers
                 demoPolygon = new Polygon
                 {
                     Stroke = Brushes.Black,
-                    StrokeThickness = 4,
-                    Fill = Brushes.Gray
+                    StrokeThickness = 0,
+                    Fill = Brushes.Gray,
+                    Opacity = 0.5
                 };
 
                 drawingPolygon = new Polygon
@@ -120,7 +124,8 @@ namespace GIS.Classes.Managers
                     Stroke = Brushes.Black,
                     StrokeDashArray = new DoubleCollection { 3, 2 },
                     StrokeThickness = 1,
-                    Fill = Brushes.Gray
+                    Fill = Brushes.Gray,
+                    Opacity = 0.3
                 };
 
                 Canvas.SetZIndex(drawingPolygon, 101);
@@ -145,6 +150,45 @@ namespace GIS.Classes.Managers
         {
             drawingPolygon.Points[drawingPolygon.Points.Count - 1] = position;
         }
+
+        public void CancelDrawing()
+        {
+            if (IsDrawingLines)
+            {
+                IsDrawingLines = false;
+
+                if (drawingLine != null && mapCanvas.Children.Contains(drawingLine))
+                    mapCanvas.Children.Remove(drawingLine);
+
+                if (demoPolyLine != null && mapCanvas.Children.Contains(demoPolyLine))
+                    mapCanvas.Children.Remove(demoPolyLine);
+
+                if (demoPolyLine != null)
+                    demoPolyLine.Points.Clear();
+            }
+
+            if (IsDrawingPolygons)
+            {
+                IsDrawingPolygons = false;
+
+                if (drawingPolygon != null && mapCanvas.Children.Contains(drawingPolygon))
+                    mapCanvas.Children.Remove(drawingPolygon);
+
+                if (demoPolygon != null && mapCanvas.Children.Contains(demoPolygon))
+                    mapCanvas.Children.Remove(demoPolygon);
+
+                if (drawingPolygon != null)
+                    drawingPolygon.Points.Clear();
+
+                if (demoPolygon != null)
+                    demoPolygon.Points.Clear();
+            }
+
+            points.Clear();
+
+            CreateDrawingFigures();
+        }
+
         public void EndDrawing()
         {
             if (IsDrawingLines)

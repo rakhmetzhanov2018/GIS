@@ -21,7 +21,6 @@
                 CornerRadius="3"
                 BorderBrush="DarkGray" 
                 BorderThickness="1"
-                Background="{Binding SelectedColor, ElementName=ColorPickerRoot}"
                 Cursor="Hand"
                 MouseDown="ColorPreview_MouseDown"
                 ToolTip="Нажмите для выбора цвета"/>
@@ -38,7 +37,7 @@
 
         <!-- Попап с расширенным выбором цвета -->
         <Popup x:Name="ColorPopup" 
-               StaysOpen="False"
+               StaysOpen="True"
                PlacementTarget="{Binding ElementName=ColorPreview}"
                Placement="Bottom"
                AllowsTransparency="True"
@@ -55,17 +54,14 @@
                 </Border.Effect>
 
                 <StackPanel Width="220">
-                    <!-- Заголовок -->
                     <TextBlock Text="Выбор цвета" 
                                FontWeight="Bold" 
                                FontSize="14"
                                Margin="0,0,0,10"
                                HorizontalAlignment="Center"/>
 
-                    <!-- Превью выбранного цвета -->
                     <Border x:Name="PreviewColor"
                             Height="30" 
-                            Background="{Binding SelectedColor, ElementName=ColorPickerRoot}"
                             CornerRadius="3"
                             BorderBrush="Gray"
                             BorderThickness="1"
@@ -104,7 +100,7 @@
                                     Maximum="255" 
                                     Value="{Binding SelectedColor.R, ElementName=ColorPickerRoot, Mode=TwoWay}"
                                     Margin="5,0"
-                                    Foreground="#FF4444"/>
+                                    Foreground="#FF4444" ValueChanged="Slider_ValueChanged"/>
                             <TextBlock x:Name="RedValue" Grid.Column="2" Text="{Binding Value, ElementName=RedSlider, StringFormat={}{0:F0}}"/>
                         </Grid>
                     </StackPanel>
@@ -124,7 +120,7 @@
                                     Minimum="0" 
                                     Maximum="255" 
                                     Value="{Binding SelectedColor.G, ElementName=ColorPickerRoot, Mode=TwoWay}"
-                                    Margin="5,0"/>
+                                    Margin="5,0" ValueChanged="Slider_ValueChanged"/>
                             <TextBlock x:Name="GreenValue" Grid.Column="2" Text="{Binding Value, ElementName=GreenSlider, StringFormat={}{0:F0}}"/>
                         </Grid>
                     </StackPanel>
@@ -144,7 +140,7 @@
                                     Minimum="0" 
                                     Maximum="255" 
                                     Value="{Binding SelectedColor.B, ElementName=ColorPickerRoot, Mode=TwoWay}"
-                                    Margin="5,0"/>
+                                    Margin="5,0" ValueChanged="Slider_ValueChanged"/>
                             <TextBlock x:Name="BlueValue" Grid.Column="2" Text="{Binding Value, ElementName=BlueSlider, StringFormat={}{0:F0}}"/>
                         </Grid>
                     </StackPanel>

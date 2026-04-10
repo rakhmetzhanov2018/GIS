@@ -51,6 +51,10 @@ namespace GIS.Services
         {
             drawingService.EndDrawing();
         }
+        public void CancelDrawing()
+        {
+            drawingService.CancelDrawing();
+        }
 
         public void DrawAll()
         {

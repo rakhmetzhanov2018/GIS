@@ -109,6 +109,11 @@ namespace GIS
         }
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.RightButton == MouseButtonState.Pressed)
+            {
+                canvasManager.EndDrawing();
+            }
+
             if (e.LeftButton != MouseButtonState.Pressed) return;
             MapCanvas.Focus();
             var position = e.GetPosition(MapCanvas);
@@ -302,7 +307,7 @@ namespace GIS
                 //    MapToCanvasTranslator.GlobalOffsetX += 15;
                 //    break;
                 case Key.Escape:
-                    canvasManager.EndDrawing();
+                    canvasManager.CancelDrawing();
                     break;
                 default:
                     return;
@@ -375,6 +380,10 @@ namespace GIS
             foreach (var shape in layer.ObjectList)
             {
                 MapCanvas.Children.Remove(shape.Geometry.Figure);
+            }
+            if (layer is RasterLayer rasterLayer)
+            {
+                MapCanvas.Children.Remove(rasterLayer.RasterImage);
             }
 
             StatusTextBox.Text = $"Слой '{layer.Name}' удалён";

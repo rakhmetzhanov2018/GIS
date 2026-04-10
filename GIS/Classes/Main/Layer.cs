@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.DirectoryServices;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -136,7 +137,7 @@ namespace GIS.Classes.Main
         {
             return $"{Name}";
         }
-        public void DrawAll(Canvas canvas)
+        public virtual void DrawAll(Canvas canvas)
         {
             foreach (Feature feature in ObjectList)
             {

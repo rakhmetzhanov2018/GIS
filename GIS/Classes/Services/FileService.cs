@@ -5,6 +5,7 @@ using GIS.Classes.Services;
 using GIS.Windows;
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -144,23 +145,8 @@ namespace GIS.Services
             Canvas.SetTop(image, 0);
 
             RasterLayer rasterLayer = new RasterLayer(image, Path.GetFileName(filePath));
-
-            var window = new MapImageSettingsWindow();
-
-            if (window.ShowDialog() == true)
-            {
-                rasterLayer.Bounds = window.ImageBounds;
-            }
-            else
-            {
-                rasterLayer.Bounds = new GeoBounds
-                {
-                    MinLon = -180,
-                    MaxLon = 180,
-                    MinLat = -90,
-                    MaxLat = 90
-                };
-            }
+            var translatedPoint = MapToCanvasTranslator.TranslateFromCanvasToGeo(bitmap.Width, (int)bitmap.Height);
+            rasterLayer.Bounds = MapToCanvasTranslator.Bounds;
 
             mapCanvas.Children.Add(image);
 

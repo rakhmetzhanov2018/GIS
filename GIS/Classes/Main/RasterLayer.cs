@@ -14,33 +14,33 @@ namespace GIS.Classes.Main
 {
     public class RasterLayer : Layer
     {
-        private Image rasterImage;
+        public Image RasterImage { get; private set; }
         private new GeoBounds Bounds { get; set; }
 
         public RasterLayer(Image rasterImage, string name)
         {
-            this.rasterImage = rasterImage;
+            RasterImage = rasterImage;
             Name = name;
         }
 
-        public new void DrawAll(Canvas mapCanvas)
+        public override void DrawAll(Canvas mapCanvas)
         {
-            if (rasterImage != null && !mapCanvas.Children.Contains(rasterImage))
-            {
-                mapCanvas.Children.Add(rasterImage);
-            }
+            if (RasterImage == null) return;
+
+            mapCanvas.Children.Remove(RasterImage);
+            mapCanvas.Children.Add(RasterImage);
 
             UpdateAll();
         }
         public override void UpdateAll()
         {
-            if (rasterImage == null) return;
+            if (RasterImage == null) return;
 
-            Canvas.SetLeft(rasterImage, MapToCanvasTranslator.GlobalOffsetX);
-            Canvas.SetTop(rasterImage, MapToCanvasTranslator.GlobalOffsetY);
+            Canvas.SetLeft(RasterImage, MapToCanvasTranslator.GlobalOffsetX);
+            Canvas.SetTop(RasterImage, MapToCanvasTranslator.GlobalOffsetY);
 
-            rasterImage.Width = MapToCanvasTranslator.CanvasSize.Width * MapToCanvasTranslator.GlobalScale;
-            rasterImage.Height = MapToCanvasTranslator.CanvasSize.Height * MapToCanvasTranslator.GlobalScale;
+            RasterImage.Width = MapToCanvasTranslator.CanvasSize.Width * MapToCanvasTranslator.GlobalScale;
+            RasterImage.Height = MapToCanvasTranslator.CanvasSize.Height * MapToCanvasTranslator.GlobalScale;
         }
     }
 }

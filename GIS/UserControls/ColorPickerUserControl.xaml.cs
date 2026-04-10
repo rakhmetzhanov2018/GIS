@@ -110,17 +110,22 @@ namespace GIS.UserControls
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
+            ColorPreview.Background = PreviewColor.Background;
             SelectedColor = Color.FromRgb(
                 (byte)RedSlider.Value,
                 (byte)GreenSlider.Value,
-                (byte)BlueSlider.Value
-            );
+                (byte)BlueSlider.Value);
             ColorPopup.IsOpen = false;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             ColorPopup.IsOpen = false;
+        }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            PreviewColor.Background = new SolidColorBrush(SelectedColor);
         }
     }
 }

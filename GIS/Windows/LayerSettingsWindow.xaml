@@ -51,7 +51,9 @@
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LineThickness, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Цвет заполнения:"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding FillColor, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                <controls:ColorPickerUserControl Grid.Row="1" Grid.Column="1" 
+                          SelectedColor="{Binding FillColor, Mode=TwoWay}"
+                          Margin="5"/>
             </Grid>
         </DataTemplate>
     </Window.Resources>
