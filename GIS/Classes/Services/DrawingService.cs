@@ -193,21 +193,17 @@ namespace GIS.Classes.Managers
         {
             if (IsDrawingLines)
             {
-                IsDrawingLines = false;
-                mapCanvas.Children.Remove(drawingLine);
-                mapCanvas.Children.Remove(demoPolyLine);
-
                 var newPointList = MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolyLine.Points.ToList());
 
                 GeoGraphicLineString newGeo = new GeoGraphicLineString(newPointList);
                 CreateAttributeWindow(newGeo);
+
+                IsDrawingLines = false;
+                mapCanvas.Children.Remove(drawingLine);
+                mapCanvas.Children.Remove(demoPolyLine);
             }
             else if (IsDrawingPolygons)
             {
-                IsDrawingPolygons = false;
-                mapCanvas.Children.Remove(drawingPolygon);
-                mapCanvas.Children.Remove(demoPolygon);
-
                 var newPointList = new List<List<double[]>>
                 {
                     MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolygon.Points.ToList())
@@ -215,6 +211,10 @@ namespace GIS.Classes.Managers
 
                 GeoGraphicPolygon newGeo = new GeoGraphicPolygon(newPointList);
                 CreateAttributeWindow(newGeo);
+
+                IsDrawingPolygons = false;
+                mapCanvas.Children.Remove(drawingPolygon);
+                mapCanvas.Children.Remove(demoPolygon);
             }
         }
     }

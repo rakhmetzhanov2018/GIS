@@ -15,7 +15,6 @@ namespace GIS.Classes.Main
     public class RasterLayer : Layer
     {
         public Image RasterImage { get; private set; }
-        private new GeoBounds Bounds { get; set; }
 
         public RasterLayer(Image rasterImage, string name)
         {
@@ -32,15 +31,48 @@ namespace GIS.Classes.Main
 
             UpdateAll();
         }
+
+        //public override void UpdateAll()
+        //{
+        //    if (RasterImage == null) return;
+
+        //    Canvas.SetLeft(RasterImage, MapToCanvasTranslator.GlobalOffsetX);
+        //    Canvas.SetTop(RasterImage, MapToCanvasTranslator.GlobalOffsetY);
+
+        //    RasterImage.Width = MapToCanvasTranslator.CanvasSize.Width * MapToCanvasTranslator.GlobalScale;
+        //    RasterImage.Height = MapToCanvasTranslator.CanvasSize.Height * MapToCanvasTranslator.GlobalScale;
+        //}
+
         public override void UpdateAll()
         {
             if (RasterImage == null) return;
 
-            Canvas.SetLeft(RasterImage, MapToCanvasTranslator.GlobalOffsetX);
-            Canvas.SetTop(RasterImage, MapToCanvasTranslator.GlobalOffsetY);
+            double imageMinLon = Bounds.MinLon;
+            double imageMaxLon = Bounds.MaxLon;
+            double imageMinLat = Bounds.MinLat;
+            double imageMaxLat = Bounds.MaxLat;
 
-            RasterImage.Width = MapToCanvasTranslator.CanvasSize.Width * MapToCanvasTranslator.GlobalScale;
-            RasterImage.Height = MapToCanvasTranslator.CanvasSize.Height * MapToCanvasTranslator.GlobalScale;
+            var topLeft = MapToCanvasTranslator.TranslateFromGeoToCanvas(imageMinLon, imageMaxLat);
+            var bottomRight = MapToCanvasTranslator.TranslateFromGeoToCanvas(imageMaxLon, imageMinLat);
+
+            double offsetX = MapToCanvasTranslator.GlobalOffsetX;
+            double offsetY = MapToCanvasTranslator.GlobalOffsetY;
+            double scale = MapToCanvasTranslator.GlobalScale;
+
+            double finalLeft = topLeft.X * scale + offsetX;
+            double finalTop = topLeft.Y * scale + offsetY;
+            double finalWidth = (bottomRight.X - topLeft.X) * scale;
+            double finalHeight = (bottomRight.Y - topLeft.Y) * scale;
+
+            Canvas.SetLeft(RasterImage, finalLeft);
+            Canvas.SetTop(RasterImage, finalTop);
+
+            RasterImage.Width = finalWidth;
+            RasterImage.Height = finalHeight;
+        }
+        public void SetBounds(GeoBounds bounds)
+        {
+            Bounds = bounds;
         }
     }
 }

@@ -145,7 +145,8 @@ namespace GIS.Services
             Canvas.SetTop(image, 0);
 
             RasterLayer rasterLayer = new RasterLayer(image, Path.GetFileName(filePath));
-            var translatedPoint = MapToCanvasTranslator.TranslateFromCanvasToGeo(bitmap.Width, (int)bitmap.Height);
+            var translatedPoint = MapToCanvasTranslator.TranslateFromCanvasToGeo(bitmap.Width, bitmap.Height);
+
             rasterLayer.Bounds = MapToCanvasTranslator.Bounds;
 
             mapCanvas.Children.Add(image);
