@@ -21,26 +21,28 @@ namespace GIS.Classes.ViewModels
         public string Value
         {
             get => _value;
-            set { _value = value; OnPropertyChanged(); }
+            set {
+                if (_value != value)
+                {
+                    _value = value;
+                    OnPropertyChanged();
+                }
+            }
         }
     }
 
     public class DrawnObjectPropertiesViewModel : ViewModelBase
     {
         private readonly Layer _layer;
-        private readonly GeoGraphicObject _geometry;
-        public Canvas TargetCanvas { get; set; }
 
-        public ObservableCollection<AttributeField> AttributeFields { get; } = new();
+        public ObservableCollection<AttributeField> AttributeFields { get; } = [];
         public ICommand CreateCommand { get; }
         public ICommand CancelCommand { get; }
         public event EventHandler<bool> CloseWindow;
 
-        public DrawnObjectPropertiesViewModel(Layer layer, GeoGraphicObject geometry, Canvas canvas)
+        public DrawnObjectPropertiesViewModel(Layer layer)
         {
             _layer = layer;
-            _geometry = geometry;
-            TargetCanvas = canvas;
 
             CreateCommand = new RelayCommand(Create);
             CancelCommand = new RelayCommand(Cancel);
@@ -62,29 +64,7 @@ namespace GIS.Classes.ViewModels
             }
         }
 
-        private void Create()
-        {
-            var props = new Dictionary<string, string>();
-            foreach (var field in AttributeFields)
-                props[field.Name] = field.Value;
-
-            var feature = new Feature(_geometry, props);
-            feature.Name = props.TryGetValue("name", out var name) ? name : "Без названия";
-            _layer.AddObject(feature);
-
-            if (_layer.LayerStyle == null)
-                _layer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(_layer.GeoType);
-            _layer.LayerStyle.ApplyToFeature(feature);
-
-            feature.DrawFigure(TargetCanvas);
-            feature.SetVisibility(_layer.IsVisible);
-
-            var layerBounds = _layer.Bounds;
-            feature.Geometry.GetBounds(ref layerBounds);
-            _layer.Bounds = layerBounds;
-
-            CloseWindow?.Invoke(this, true);
-        }
+        private void Create() => CloseWindow?.Invoke(this, true);
 
         private void Cancel() => CloseWindow?.Invoke(this, false);
     }

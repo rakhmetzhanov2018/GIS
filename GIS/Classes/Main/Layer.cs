@@ -118,7 +118,7 @@ namespace GIS.Classes.Main
         
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public void UpdateVisibility()
+        public virtual void UpdateVisibility()
         {
             foreach (Feature feature in ObjectList)
             {

@@ -39,9 +39,20 @@ namespace GIS.Classes.Main
             Geometry = geo;
             this.props = props;
 
-            if (props.ContainsKey("name"))
+            if (props.ContainsKey("name") && string.IsNullOrWhiteSpace(props["name"]))
             {
                 Name = props["name"];  
+            }
+            else
+            {
+                Name = Geometry switch
+                {
+                    GeoGraphicPoint => $"Точка {Guid.NewGuid().ToString().Substring(0, 6)}",
+                    GeoGraphicLineString => $"Линия {Guid.NewGuid().ToString().Substring(0, 6)}",
+                    GeoGraphicPolygon => $"Полигон {Guid.NewGuid().ToString().Substring(0, 6)}",
+                    _ => throw new Exception("Проблема в типе объекта")
+                }; 
+                
             }
         }
 

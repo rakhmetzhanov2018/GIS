@@ -58,10 +58,11 @@ namespace GIS.Services
 
         public void DrawAll()
         {
-            foreach (var layer in layersList)
+            for (int i = layersList.Count - 1; i >= 0; i--)
             {
-                layer.DrawAll(mapCanvas);
+                layersList[i].DrawAll(mapCanvas);
             }
+
             ApplyStylesForAllLayers();
         }
         private void ApplyStylesForAllLayers()

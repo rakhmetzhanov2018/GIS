@@ -74,5 +74,10 @@ namespace GIS.Classes.Main
         {
             Bounds = bounds;
         }
+
+        public override void UpdateVisibility()
+        {
+            RasterImage.Visibility = IsVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

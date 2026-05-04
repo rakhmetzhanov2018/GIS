@@ -171,6 +171,9 @@ namespace GIS
         }
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons)
+                return;
+
             var mousePos = e.GetPosition(MapCanvas);
             canvasManager.HandleMouseWheel(mousePos, e.Delta);
             UpdateScale();

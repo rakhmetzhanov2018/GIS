@@ -5,6 +5,7 @@ using GIS.Classes.Services;
 using GIS.Classes.ViewModels;
 using GIS.Windows;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -65,9 +66,41 @@ namespace GIS.Classes.Managers
         }
         private void CreateAttributeWindow(GeoGraphicObject newGeo)
         {
-            var viewModel = new DrawnObjectPropertiesViewModel(selectedLayer, newGeo, mapCanvas);
+            var viewModel = new DrawnObjectPropertiesViewModel(selectedLayer);
             var window = new DrawnObjectPropertiesWindow(viewModel);
-            window.ShowDialog();
+
+            var props = new Dictionary<string, string>();
+
+            if (viewModel.AttributeFields.Count == 0)
+            {
+                AddFeatureToLayer(newGeo, props);
+            } 
+            else if (window.ShowDialog() == true)
+            {
+                foreach (var field in viewModel.AttributeFields)
+                {
+                    props[field.Name] = field.Value;
+                }
+                AddFeatureToLayer(newGeo, props);
+            }
+        }
+
+        private void AddFeatureToLayer(GeoGraphicObject newGeo, Dictionary<string, string> props)
+        {
+            var feature = new Feature(newGeo, props);
+            selectedLayer.AddObject(feature);
+
+            if (selectedLayer.LayerStyle == null)
+                selectedLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(selectedLayer.GeoType);
+            selectedLayer.LayerStyle.ApplyToFeature(feature);
+
+            feature.DrawFigure(mapCanvas);
+            feature.SetVisibility(selectedLayer.IsVisible);
+
+            var layerBounds = selectedLayer.Bounds;
+            feature.Geometry.GetBounds(ref layerBounds);
+            selectedLayer.Bounds = layerBounds;
+            
         }
 
         public void SetSelectedLayer(Layer selectedLayer)
