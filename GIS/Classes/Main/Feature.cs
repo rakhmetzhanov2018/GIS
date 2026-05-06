@@ -77,6 +77,7 @@ namespace GIS.Classes.Main
         }
         private void UpdateHighlightFeature()
         {
+            System.Diagnostics.Debug.WriteLine($"UpdateHighlightFeature: isSelected={isSelected}, Figure={Geometry.Figure?.GetType()}");
             if (isSelected && Geometry.Figure is Shape shape)
             {
                 shape.StrokeDashArray = new DoubleCollection { 2, 1 };
@@ -87,6 +88,7 @@ namespace GIS.Classes.Main
                 };
 
                 Panel.SetZIndex(shape, 100);
+                System.Diagnostics.Debug.WriteLine("  -> HIGHLIGHTED");
             }
             else
             {
@@ -94,6 +96,7 @@ namespace GIS.Classes.Main
                 Geometry.Figure.Effect = null;
 
                 Panel.SetZIndex(Geometry.Figure, 0);
+                System.Diagnostics.Debug.WriteLine("  -> UNHIGHLIGHTED");
             }
         }
     }

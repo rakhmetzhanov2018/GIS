@@ -50,7 +50,7 @@
                 
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="TreeViewItem">
-                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                        <!-- <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/> -->
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <Setter Property="Tag" Value="{Binding}"/>
 
@@ -160,7 +160,7 @@
         </StatusBar>
         
         <Grid Grid.Row="0" Grid.Column="1">
-            <Canvas x:Name="MapCanvas" Margin="10" Focusable="True" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown" MouseUp="MapCanvas_MouseUp" Loaded="MapCanvas_Loaded"/>
+            <Canvas x:Name="MapCanvas" Margin="10" Background="#FFE6D9D4" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseWheel="MapCanvas_MouseWheel" ClipToBounds="True" KeyDown="MapCanvas_KeyDown" MouseUp="MapCanvas_MouseUp" Loaded="MapCanvas_Loaded" MouseLeave="MapCanvas_MouseLeave"/>
             
             <Grid x:Name="FeaturePropertiesGrid" Visibility="Hidden">
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="White">

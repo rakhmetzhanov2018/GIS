@@ -115,7 +115,8 @@ namespace GIS
             }
 
             if (e.LeftButton != MouseButtonState.Pressed) return;
-            MapCanvas.Focus();
+            
+            
             var position = e.GetPosition(MapCanvas);
 
             switch (currentMapMode)
@@ -127,18 +128,19 @@ namespace GIS
                     break;
 
                 case MapMode.Select:
+                    selectionManager.ClearSelection();
+                    ClearTreeViewSelection(LayerTreeView);
                     var hit = VisualTreeHelper.HitTest(MapCanvas, position);
 
                     if (hit.VisualHit is Shape shape && shape.Tag is Feature feature)
                     {
+
                         selectionManager.SelectFeature(feature);
                         ShowFeatureInfo(feature);
                         SelectFeatureInTreeView(feature);
                     }
                     else
                     {
-                        selectionManager.ClearSelection();
-
                         FeaturePropertiesGrid.Visibility = Visibility.Hidden;
                         isSelecting = true;
                         isLeftMouseButtonDown = true;
@@ -187,15 +189,15 @@ namespace GIS
         }
         private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (currentMapMode == MapMode.Select && e.LeftButton == MouseButtonState.Released)
+            if (currentMapMode == MapMode.Select && e.LeftButton == MouseButtonState.Released && isSelecting)
             {
                 isSelecting = false;
                 isLeftMouseButtonDown = false;
                 selectionManager.EndRectangleSelection();
 
                 var selectedFeatures = selectionManager.GetSelectedFeatures();
-                if (selectedFeatures.Count > 0)
-                    ShowFeatureInfo(selectedFeatures[selectedFeatures.Count - 1]);
+                if (selectedFeatures.Count == 1)
+                    ShowFeatureInfo(selectedFeatures[0]);
             }
         }
 
@@ -310,7 +312,17 @@ namespace GIS
                 //    MapToCanvasTranslator.GlobalOffsetX += 15;
                 //    break;
                 case Key.Escape:
-                    canvasManager.CancelDrawing();
+                    if (currentMapMode == MapMode.Select && isSelecting)
+                    {
+                        isSelecting = false;
+                        selectionManager.EndRectangleSelection();
+                        selectionManager.ClearSelection();
+                        FeaturePropertiesGrid.Visibility = Visibility.Hidden;
+                    }
+                    else
+                    {
+                        canvasManager.CancelDrawing();
+                    }
                     break;
                 default:
                     return;
@@ -325,6 +337,12 @@ namespace GIS
         }
         private void MapModeRadioButton_Click(object sender, EventArgs e)
         {
+            if (currentMapMode == MapMode.Select && isSelecting)
+            {
+                isSelecting = false;
+                selectionManager.EndRectangleSelection();
+            }
+
             if (sender is RadioButton radioButton)
             {
                 var mode = radioButton.Tag.ToString();
@@ -441,7 +459,11 @@ namespace GIS
             if (e.NewValue is Layer selectedLayer)
             {
                 selectionManager.ClearSelection();
-                selectedLayer.IsSelected = true;
+                foreach (Feature feature in selectedLayer.ObjectList)
+                {
+                    feature.IsSelected = true;
+                }
+                
             }
             else if (e.NewValue is Feature selectedFeature)
             {
@@ -468,6 +490,29 @@ namespace GIS
                 layerManager.AddLayer(rasterLayer);
                 canvasManager.DrawAll();
                 StatusTextBox.Text = $"Импортировано изображение: {rasterLayer.Name}";
+            }
+        }
+
+        private void ClearTreeViewSelection(ItemsControl control)
+        {
+            for (int i = 0; i < control.Items.Count; i++)
+            {
+                var item = control.ItemContainerGenerator.ContainerFromIndex(i) as TreeViewItem;
+                if (item != null)
+                {
+                    item.IsSelected = false;
+                    ClearTreeViewSelection(item);
+                }
+            }
+        }
+
+        private void MapCanvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (currentMapMode == MapMode.Select && isSelecting)
+            {
+                isSelecting = false;
+                isLeftMouseButtonDown = false;
+                selectionManager.EndRectangleSelection();
             }
         }
     }
