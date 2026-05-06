@@ -49,6 +49,13 @@ namespace GIS.Classes.Services
 
             return [lon, lat];
         }
+        static public Point TranslateFromGeoToCanvasFinal(double lon, double lat)
+        {
+            Point basePoint = TranslateFromGeoToCanvas(lon, lat);
+            double finalX = basePoint.X * GlobalScale + GlobalOffsetX;
+            double finalY = basePoint.Y * GlobalScale + GlobalOffsetY;
+            return new Point(finalX, finalY);
+        }
         static public List<double[]> TranslateFromCanvasToGeo(List<Point> points)
         {
             var newPoints = new List<double[]>();

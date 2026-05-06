@@ -144,14 +144,7 @@ namespace GIS.Services
             Canvas.SetLeft(image, 0);
             Canvas.SetTop(image, 0);
 
-
-            var settingsWindow = new MapImageSettingsWindow();
-
-            GeoBounds bounds;
-            if (settingsWindow.ShowDialog() == true)
-                bounds = settingsWindow.ImageBounds;
-            else
-                bounds = new GeoBounds(37.5, 37.7, 55.7, 55.9);
+            GeoBounds bounds = new GeoBounds(37.5, 37.7, 55.7, 55.9);
 
             RasterLayer rasterLayer = new RasterLayer(image, Path.GetFileName(filePath));
             var translatedPoint = MapToCanvasTranslator.TranslateFromCanvasToGeo(bitmap.Width, bitmap.Height);

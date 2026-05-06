@@ -173,8 +173,17 @@ namespace GIS
         }
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            //if (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons)
+            //    return;
             if (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons)
+            {
+                // Разрешаем масштабирование, просто обрабатываем и потом обновляем временные фигуры
+                var mousePos2 = e.GetPosition(MapCanvas);
+                canvasManager.HandleMouseWheel(mousePos2, e.Delta);
+                canvasManager.UpdateTempFigures(); // <-- важно
+                UpdateScale();
                 return;
+            }
 
             var mousePos = e.GetPosition(MapCanvas);
             canvasManager.HandleMouseWheel(mousePos, e.Delta);

@@ -116,5 +116,10 @@ namespace GIS.Services
 
             UpdateAll();
         }
+
+        public void UpdateTempFigures()
+        {
+            drawingService.UpdateTempFigures();
+        }
     }
 }

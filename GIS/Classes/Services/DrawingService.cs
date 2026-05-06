@@ -34,6 +34,9 @@ namespace GIS.Classes.Managers
         private Polyline demoPolyLine;
         private Polygon demoPolygon;
 
+        private List<double[]> _tempLineGeoPoints = new();   // географические точки линии
+        private List<List<double[]>> _tempPolygonGeoPoints = new(); // географические точки полигона (один внешний контур)
+
         public DrawingService(Canvas mapCanvas)
         {
             this.mapCanvas = mapCanvas;
@@ -118,11 +121,17 @@ namespace GIS.Classes.Managers
         }
         public void DrawLine(Point position)
         {
+            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
+            var finalPoint = MapToCanvasTranslator.TranslateFromGeoToCanvasFinal(geoCoords[0], geoCoords[1]);
+
             drawingLine.X1 = position.X;
             drawingLine.Y1 = position.Y;
 
             if (!IsDrawingLines)
             {
+                _tempLineGeoPoints.Clear();
+                _tempLineGeoPoints.Add(geoCoords);
+
                 demoPolyLine = new Polyline
                 {
                     Stroke = Brushes.Black,
@@ -138,12 +147,19 @@ namespace GIS.Classes.Managers
                 mapCanvas.Children.Add(demoPolyLine);
             }
 
-            demoPolyLine.Points.Add(position);
+            _tempLineGeoPoints.Add(geoCoords);
+            demoPolyLine.Points.Add(finalPoint);
         }
         public void DrawPolygon(Point position)
         {
+            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
+            var finalPoint = MapToCanvasTranslator.TranslateFromGeoToCanvasFinal(geoCoords[0], geoCoords[1]);
+
             if (!IsDrawingPolygons)
             {
+                _tempPolygonGeoPoints.Clear();
+                _tempPolygonGeoPoints.Add(new List<double[]>());
+
                 demoPolygon = new Polygon
                 {
                     Stroke = Brushes.Black,
@@ -169,25 +185,69 @@ namespace GIS.Classes.Managers
                 mapCanvas.Children.Add(demoPolygon);
             }
 
-            drawingPolygon.Points.Add(position);
-            drawingPolygon.Points.Add(position);
-            demoPolygon.Points.Add(position);
+            _tempPolygonGeoPoints[0].Add(geoCoords);
+
+            drawingPolygon.Points.Add(finalPoint);
+            drawingPolygon.Points.Add(finalPoint);
+            demoPolygon.Points.Add(finalPoint);
         }
+
+        public void UpdateTempFigures()
+        {
+            if (IsDrawingLines && _tempLineGeoPoints.Count > 0)
+            {
+                demoPolyLine.Points.Clear();
+                foreach (var geoPoint in _tempLineGeoPoints)
+                {
+                    var finalPoint = MapToCanvasTranslator.TranslateFromGeoToCanvasFinal(geoPoint[0], geoPoint[1]);
+                    demoPolyLine.Points.Add(finalPoint);
+                }
+
+                // Обновляем резиновую линию
+                if (demoPolyLine.Points.Count > 1)
+                {
+                    drawingLine.X1 = demoPolyLine.Points[demoPolyLine.Points.Count - 2].X;
+                    drawingLine.Y1 = demoPolyLine.Points[demoPolyLine.Points.Count - 2].Y;
+                    drawingLine.X2 = demoPolyLine.Points[demoPolyLine.Points.Count - 1].X;
+                    drawingLine.Y2 = demoPolyLine.Points[demoPolyLine.Points.Count - 1].Y;
+                }
+            }
+
+            if (IsDrawingPolygons && _tempPolygonGeoPoints.Count > 0 && _tempPolygonGeoPoints[0].Count > 0)
+            {
+                demoPolygon.Points.Clear();
+                drawingPolygon.Points.Clear();
+
+                foreach (var geoPoint in _tempPolygonGeoPoints[0])
+                {
+                    var finalPoint = MapToCanvasTranslator.TranslateFromGeoToCanvasFinal(geoPoint[0], geoPoint[1]);
+                    demoPolygon.Points.Add(finalPoint);
+                    drawingPolygon.Points.Add(finalPoint);
+                    drawingPolygon.Points.Add(finalPoint); // для штриховой линии
+                }
+            }
+        }
+
 
         public void UpdateDrawingLine(Point position)
         {
-            drawingLine.X2 = position.X;
-            drawingLine.Y2 = position.Y;
+            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
+            var finalPoint = MapToCanvasTranslator.TranslateFromGeoToCanvasFinal(geoCoords[0], geoCoords[1]);
+            drawingLine.X2 = finalPoint.X;
+            drawingLine.Y2 = finalPoint.Y;
         }
         public void UpdateDrawingPolygon(Point position)
         {
-            drawingPolygon.Points[drawingPolygon.Points.Count - 1] = position;
+            var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
+            var finalPoint = MapToCanvasTranslator.TranslateFromGeoToCanvasFinal(geoCoords[0], geoCoords[1]);
+            if (drawingPolygon.Points.Count > 0) drawingPolygon.Points[drawingPolygon.Points.Count - 1] = finalPoint;
         }
 
         public void CancelDrawing()
         {
             if (IsDrawingLines)
             {
+                _tempLineGeoPoints.Clear();
                 IsDrawingLines = false;
 
                 if (drawingLine != null && mapCanvas.Children.Contains(drawingLine))
@@ -202,6 +262,7 @@ namespace GIS.Classes.Managers
 
             if (IsDrawingPolygons)
             {
+                _tempPolygonGeoPoints.Clear();
                 IsDrawingPolygons = false;
 
                 if (drawingPolygon != null && mapCanvas.Children.Contains(drawingPolygon))
@@ -226,10 +287,10 @@ namespace GIS.Classes.Managers
         {
             if (IsDrawingLines)
             {
-                var newPointList = MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolyLine.Points.ToList());
-
-                GeoGraphicLineString newGeo = new GeoGraphicLineString(newPointList);
+                var newGeo = new GeoGraphicLineString(_tempLineGeoPoints); // нужно, чтобы конструктор принимал List<double[]>
                 CreateAttributeWindow(newGeo);
+
+                _tempLineGeoPoints.Clear();
 
                 IsDrawingLines = false;
                 mapCanvas.Children.Remove(drawingLine);
@@ -237,14 +298,10 @@ namespace GIS.Classes.Managers
             }
             else if (IsDrawingPolygons)
             {
-                var newPointList = new List<List<double[]>>
-                {
-                    MapToCanvasTranslator.TranslateFromCanvasToGeo(demoPolygon.Points.ToList())
-                };
-
-                GeoGraphicPolygon newGeo = new GeoGraphicPolygon(newPointList);
+                var newGeo = new GeoGraphicPolygon(_tempPolygonGeoPoints);
                 CreateAttributeWindow(newGeo);
 
+                _tempPolygonGeoPoints.Clear();
                 IsDrawingPolygons = false;
                 mapCanvas.Children.Remove(drawingPolygon);
                 mapCanvas.Children.Remove(demoPolygon);
