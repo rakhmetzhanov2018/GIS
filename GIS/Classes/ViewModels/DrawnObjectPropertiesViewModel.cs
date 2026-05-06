@@ -1,6 +1,7 @@
 ﻿using GIS.Classes.DrawObjects;
 using GIS.Classes.Factories;
 using GIS.Classes.Main;
+using GIS.Classes.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,7 +14,7 @@ using System.Windows.Input;
 namespace GIS.Classes.ViewModels
 {
     
-    public class AttributeField : ViewModelBase
+    public class AttributeField : ViewModelBase, IDataErrorInfo
     {
         private string _value;
         public string Name { get; set; }
@@ -26,7 +27,22 @@ namespace GIS.Classes.ViewModels
                 {
                     _value = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(Error));
                 }
+            }
+        }
+
+        public string Error => null;
+        public string this[string columnName]
+        {
+            get
+            {
+                if (columnName == nameof(Value))
+                {
+                    DataValidator.Validate(Value, DataType, out string error);
+                    return error;
+                }
+                return null;
             }
         }
     }
@@ -44,7 +60,7 @@ namespace GIS.Classes.ViewModels
         {
             _layer = layer;
 
-            CreateCommand = new RelayCommand(Create);
+            CreateCommand = new RelayCommand(Create, CanCreate);
             CancelCommand = new RelayCommand(Cancel);
 
             InitializeAttributeFields();
@@ -55,17 +71,31 @@ namespace GIS.Classes.ViewModels
             if (_layer.FeatureProperties == null) return;
             foreach (var prop in _layer.FeatureProperties)
             {
-                AttributeFields.Add(new AttributeField
+                var field = new AttributeField
                 {
                     Name = prop.Name,
                     DataType = prop.DataType,
                     Value = prop.DefaultValue ?? string.Empty
-                });
+                };
+
+                field.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(AttributeField.Value))
+                    {
+                        (CreateCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    }
+                };
+
+                AttributeFields.Add(field);
+
             }
         }
 
         private void Create() => CloseWindow?.Invoke(this, true);
 
         private void Cancel() => CloseWindow?.Invoke(this, false);
+
+        private bool CanCreate() => AttributeFields.All(field => 
+            string.IsNullOrEmpty((field as IDataErrorInfo)[nameof(AttributeField.Value)]));
     }
 }

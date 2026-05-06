@@ -1,5 +1,6 @@
 ﻿using GIS.Classes.Factories;
 using GIS.Classes.Main;
+using GIS.Classes.Services;
 using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
@@ -98,7 +99,7 @@ namespace GIS.Classes.ViewModels
 
         private bool CanAddAttribute()
         {
-            return !string.IsNullOrWhiteSpace(NewAttributeName);
+            return !string.IsNullOrWhiteSpace(NewAttributeName) && IsDefaultValueValid();
         }
 
         private void RemoveSelectedAttribute()
@@ -118,12 +119,26 @@ namespace GIS.Classes.ViewModels
 
         private bool CanApply()
         {
-            return !string.IsNullOrWhiteSpace(LayerName); 
+            bool allAttributesValid = Attributes.All(attribute =>
+                string.IsNullOrEmpty(attribute.DefaultValue) || DataValidator.Validate(attribute.DefaultValue, attribute.DataType, out _));
+            return !string.IsNullOrWhiteSpace(LayerName) && allAttributesValid; 
         }
 
         private void Cancel()
         {
             CloseWindow?.Invoke(this, false);
+        }
+        private bool IsDefaultValueValid()
+        {
+            if (string.IsNullOrWhiteSpace(NewAttributeDefaultValue))
+                return true;
+
+            if (!string.IsNullOrWhiteSpace(NewAttributeDefaultValue))
+            {
+                string typeName = NewAttributeType.ToString();
+                return DataValidator.Validate(NewAttributeDefaultValue, typeName, out _);
+            }
+            return true;
         }
         protected new bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
         {

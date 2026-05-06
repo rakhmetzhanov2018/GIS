@@ -1,4 +1,5 @@
 ﻿using GIS.Classes.Main;
+using GIS.Classes.Services;
 using GIS.Classes.Styles;
 using System;
 using System.Collections.ObjectModel;
@@ -249,7 +250,7 @@ namespace GIS.Classes.ViewModels
 
         private bool CanAddAttribute()
         {
-            return !string.IsNullOrWhiteSpace(NewAttributeName);
+            return !string.IsNullOrWhiteSpace(NewAttributeName) && IsDefaultValueValid();
         }
 
         private void RemoveSelectedAttribute()
@@ -262,6 +263,18 @@ namespace GIS.Classes.ViewModels
             return SelectedAttribute != null;
         }
 
+        private bool IsDefaultValueValid()
+        {
+            if (string.IsNullOrWhiteSpace(NewAttributeDefaultValue))
+                return true;
+
+            if (!string.IsNullOrWhiteSpace(NewAttributeDefaultValue))
+            {
+                string typeName = NewAttributeType.ToString();
+                return DataValidator.Validate(NewAttributeDefaultValue, typeName, out _);
+            }
+            return true;
+        }
 
     }
 }

@@ -54,7 +54,7 @@
 
             <TextBlock Grid.Row="3" Text="Значение по умолчанию:"/>
             <TextBox x:Name="DefaultValueTextBox" 
-                     Text="{Binding ViewModel.NewAttributeDefaultValue, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     Text="{Binding ViewModel.NewAttributeDefaultValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"
                      Grid.Row="3" Grid.Column="1" Padding="3,3,3,3"/>
 
             <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="5">
