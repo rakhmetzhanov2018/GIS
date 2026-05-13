@@ -30,12 +30,13 @@
                         <Setter Property="Margin" Value="10"/>
                         <Setter Property="FontSize" Value="20"/>
                         <Setter Property="Width" Value="Auto"/>
-                        <Setter Property="Height" Value="40"/>
+                        <Setter Property="Height" Value="30"/>
                     </Style>
                 </StackPanel.Resources>
                 <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
                 <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click"/>
                 <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click"/>
+                <Button Name="SaveLayerButton" Content="Сохранить слой" Click="SaveLayerButton_Click"/>
 
                 <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
                     <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>

@@ -3,6 +3,7 @@ using GIS.Classes.Factories;
 using GIS.Classes.Main;
 using GIS.Classes.Services;
 using GIS.Windows;
+using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -122,6 +123,42 @@ namespace GIS.Services
                 dict[prop.Name] = prop.Value.ToString();
             }
             return dict;
+        }
+        public void SaveLayerToGeoJson(Layer layer, string filePath)
+        {
+            var featureCollection = new
+            {
+                type = "FeatureCollection",
+                features = layer.ObjectList.Select(feature =>
+                    new { type = "Feature", geometry = ConvertGeoToJson(feature.Geometry), properties = feature.props })
+            };
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string json = JsonSerializer.Serialize(featureCollection, options);
+            File.WriteAllText(filePath, json);
+        }
+
+        private object ConvertGeoToJson(GeoGraphicObject geometry)
+        {
+            return geometry switch
+            {
+                GeoGraphicPoint point => new
+                {
+                    type = "Point",
+                    coordinates = new[] { point.GeoCoords[0][0], point.GeoCoords[0][1] }
+                },
+                GeoGraphicLineString line => new
+                {
+                    type = "LineString",
+                    coordinates = line.GeoCoords.Select(point => new[] { point[0], point[1] }).ToArray()
+                },
+                GeoGraphicPolygon polygon => new
+                {
+                    type = "Polygon",
+                    coordinates = new[] { polygon.GeoCoords.Select(point => new[] { point[0], point[1] }).ToArray() }
+                },
+                _ => throw new Exception("Ошибка типа геометрии")
+            };
         }
 
         public RasterLayer ImportImage(string filePath, Canvas mapCanvas)

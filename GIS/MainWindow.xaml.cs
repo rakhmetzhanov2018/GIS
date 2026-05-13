@@ -524,5 +524,32 @@ namespace GIS
                 selectionManager.EndRectangleSelection();
             }
         }
+
+        private void SaveLayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (LayerTreeView.SelectedItem is Layer layer)
+            {
+                var sfd = new SaveFileDialog()
+                {
+                    Filter = "GEOfiles (*.geojson;*.geo.json)|*.geojson;*.geo.json|All files (*.*)|*.*",
+                    DefaultExt = ".geo.json",
+                    FileName = layer.Name + ".geo.json"
+                };
+
+                if (sfd.ShowDialog() == true)
+                {
+                    try
+                    {
+                        fileService.SaveLayerToGeoJson(layer, sfd.FileName);
+                        StatusTextBox.Text = $"Слой {layer.Name} был успешно сохранён в файл {sfd.FileName}";
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
     }
 }
