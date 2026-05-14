@@ -30,6 +30,11 @@ namespace GIS
 
         private bool isSelectionUpdated = false;
 
+        private bool isCalibrating = false;
+        private RasterLayerSettingsViewModel calibrationViewModel;
+        private List<Point> calibrationImagePoints = new List<Point>();
+        private List<Point> calibrationGeoPoints = new List<Point>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -52,6 +57,7 @@ namespace GIS
             MapToCanvasTranslator.ResetGlobalOffsets();
             UpdateScale();
         }
+        #region Основные кнопки
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
         {
             OpenFileDialog openFileDialog = new()
@@ -77,6 +83,73 @@ namespace GIS
                 StatusTextBox.Text = "Отмена добавления нового слоя";
             }
         }
+        private void CreateLayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            var CLViewModel = new CreateNewLayerViewModel();
+            var createLayerWindow = new CreateNewLayerWindow(CLViewModel);
+
+            if (createLayerWindow.ShowDialog() == true)
+            {
+                var newLayer = new Layer
+                {
+                    Name = CLViewModel.LayerName,
+                    GeoType = CLViewModel.GeoType,
+                    FeatureProperties = CLViewModel.Attributes,
+                    Bounds = new GeoBounds()
+                };
+
+                layerManager.AddLayer(newLayer);
+                canvasManager.DrawAll();
+
+                StatusTextBox.Text = $"Добавлен новый слой {newLayer.Name}";
+            }
+        }
+        private void ImportImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new()
+            {
+                Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png|All files (*.*)|*.*",
+                Title = "Выберите изображение",
+                Multiselect = false,
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                var rasterLayer = fileService.ImportImage(openFileDialog.FileName, MapCanvas);
+
+                layerManager.AddLayer(rasterLayer);
+                canvasManager.DrawAll();
+                StatusTextBox.Text = $"Импортировано изображение: {rasterLayer.Name}";
+            }
+        }
+        private void SaveLayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (LayerTreeView.SelectedItem is Layer layer)
+            {
+                var sfd = new SaveFileDialog()
+                {
+                    Filter = "GEOfiles (*.geojson;*.geo.json)|*.geojson;*.geo.json|All files (*.*)|*.*",
+                    DefaultExt = ".geo.json",
+                    FileName = layer.Name + ".geo.json"
+                };
+
+                if (sfd.ShowDialog() == true)
+                {
+                    try
+                    {
+                        fileService.SaveLayerToGeoJson(layer, sfd.FileName);
+                        StatusTextBox.Text = $"Слой {layer.Name} был успешно сохранён в файл {sfd.FileName}";
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        # endregion Основные кнопки
 
         #region Управление MapCanvas
         private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
@@ -109,16 +182,45 @@ namespace GIS
         }
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.RightButton == MouseButtonState.Pressed)
+            var position = e.GetPosition(MapCanvas);
+
+            if (e.RightButton == MouseButtonState.Pressed && (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons))
             {
                 canvasManager.EndDrawing();
             }
+            if (e.RightButton == MouseButtonState.Pressed && isCalibrating)
+            {
+                var hitImage = FindImageOnClick(position);
+                if (hitImage != null && hitImage.Tag is RasterLayer rasterLayer)
+                {
+                    Point imagePoint = e.GetPosition(hitImage);
+                    var dialog = new InputCoordinatesWindow();
+                    if (dialog.ShowDialog() == true)
+                    {
+                        calibrationImagePoints.Add(imagePoint);
+                        calibrationGeoPoints.Add(new Point(dialog.Lon, dialog.Lat));
+
+                        if (calibrationImagePoints.Count >= 2)
+                        {
+                            RecalculateBounds(rasterLayer);
+                            EndCalibrationProcess();
+                        }
+                        else
+                        {
+                            StatusTextBox.Text = $"Добавлена точка {calibrationImagePoints.Count}. Нужно ещё {2 - calibrationImagePoints.Count} точки.";
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Кликните прямо на изображении растрового слоя.", "Калибровка", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    e.Handled = true;
+                    return;
+                }
+
+            }
 
             if (e.LeftButton != MouseButtonState.Pressed) return;
-            
-            
-            var position = e.GetPosition(MapCanvas);
-
             switch (currentMapMode)
             {
                 case MapMode.Move:
@@ -238,14 +340,28 @@ namespace GIS
         {
             if (sender is Button button && button.Tag is Layer layer)
             {
-                var LSViewModel = new LayerSettingsViewModel(layer);
-                var settingsWindow = new LayerSettingsWindow(LSViewModel);
-
-                if (settingsWindow.ShowDialog() == true)
+                if (layer is RasterLayer rasterLayer)
                 {
-                    canvasManager.DrawAll();
-                    StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
+                    var viewModel = new RasterLayerSettingsViewModel(rasterLayer);
+                    var rasterLayerSettings = new RasterLayerSettingsWindow(viewModel);
+                    if (rasterLayerSettings.ShowDialog() == true)
+                    {
+                        canvasManager.DrawAll();
+                        StatusTextBox.Text = $"Настройки растрового слоя {rasterLayer.Name} изменены";
+                    }
                 }
+                else
+                {
+                    var LSViewModel = new LayerSettingsViewModel(layer);
+                    var settingsWindow = new LayerSettingsWindow(LSViewModel);
+
+                    if (settingsWindow.ShowDialog() == true)
+                    {
+                        canvasManager.DrawAll();
+                        StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
+                    }
+                }
+                    
             }
         }
         private void LayerTableButton_Click(object sender, RoutedEventArgs e)
@@ -420,27 +536,7 @@ namespace GIS
         }
 
         #endregion Функции удаления слоя/объекта
-        private void CreateLayerButton_Click(object sender, RoutedEventArgs e)
-        {
-            var CLViewModel = new CreateNewLayerViewModel();
-            var createLayerWindow = new CreateNewLayerWindow(CLViewModel);
-
-            if (createLayerWindow.ShowDialog() == true)
-            {
-                var newLayer = new Layer
-                {
-                    Name = CLViewModel.LayerName,
-                    GeoType = CLViewModel.GeoType,
-                    FeatureProperties = CLViewModel.Attributes,
-                    Bounds = new GeoBounds()
-                };
-
-                layerManager.AddLayer(newLayer);
-                canvasManager.DrawAll();
-
-                StatusTextBox.Text = $"Добавлен новый слой {newLayer.Name}";
-            }
-        }
+        
         private void SelectFeatureInTreeView(Feature selectedFeature)
         {
             var layer = layerManager.FindLayerByFeature(selectedFeature);
@@ -483,25 +579,7 @@ namespace GIS
 
             isSelectionUpdated = false;
         }
-        private void ImportImageButton_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new()
-            {
-                Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png|All files (*.*)|*.*",
-                Title = "Выберите изображение",
-                Multiselect = false,
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                var rasterLayer = fileService.ImportImage(openFileDialog.FileName, MapCanvas);
-
-                layerManager.AddLayer(rasterLayer);
-                canvasManager.DrawAll();
-                StatusTextBox.Text = $"Импортировано изображение: {rasterLayer.Name}";
-            }
-        }
-
+        
         private void ClearTreeViewSelection(ItemsControl control)
         {
             for (int i = 0; i < control.Items.Count; i++)
@@ -514,7 +592,6 @@ namespace GIS
                 }
             }
         }
-
         private void MapCanvas_MouseLeave(object sender, MouseEventArgs e)
         {
             if (currentMapMode == MapMode.Select && isSelecting)
@@ -525,31 +602,75 @@ namespace GIS
             }
         }
 
-        private void SaveLayerButton_Click(object sender, RoutedEventArgs e)
+        public void StartCalibrationProcess(RasterLayerSettingsViewModel calibrationViewModel)
         {
-            if (LayerTreeView.SelectedItem is Layer layer)
-            {
-                var sfd = new SaveFileDialog()
-                {
-                    Filter = "GEOfiles (*.geojson;*.geo.json)|*.geojson;*.geo.json|All files (*.*)|*.*",
-                    DefaultExt = ".geo.json",
-                    FileName = layer.Name + ".geo.json"
-                };
+            isCalibrating = true;
+            this.calibrationViewModel = calibrationViewModel;
+            calibrationGeoPoints.Clear();
+            calibrationImagePoints.Clear();
+            StatusTextBox.Text = "Включён режим калибровки, нажниме правой кнопкой на изображении для указания реальных географических коодринат";
+        }
 
-                if (sfd.ShowDialog() == true)
+        public void EndCalibrationProcess()
+        {
+            isCalibrating = false;
+            calibrationImagePoints.Clear();
+            calibrationGeoPoints.Clear();
+            StatusTextBox.Text = "Калибровка завершена.";
+            if (calibrationViewModel != null)
+            {
+                var newWindow = new RasterLayerSettingsWindow(calibrationViewModel);
+                newWindow.ShowDialog();
+                calibrationViewModel = null;
+            }
+        }
+
+        private void RecalculateBounds(RasterLayer rasterLayer)
+        {
+            Point img1 = calibrationImagePoints[0];
+            Point img2 = calibrationImagePoints[1];
+            Point geo1 = calibrationGeoPoints[0];
+            Point geo2 = calibrationGeoPoints[1];
+
+            double scaleX = (geo2.X - geo1.X) / (img2.X - img1.X);
+            double scaleY = (geo2.Y - geo1.Y) / (img2.Y - img1.Y);
+
+            double offsetX = geo1.X - img1.X * scaleX;
+            double offsetY = geo1.Y - img1.Y * scaleY;
+
+            double imgWidth = rasterLayer.RasterImage.ActualWidth;
+            double imgHeight = rasterLayer.RasterImage.ActualHeight;
+
+            double minLon = offsetX;
+            double maxLon = offsetX + imgWidth * scaleX;
+            double minLat = offsetY + imgHeight * scaleY;
+            double maxLat = offsetY;
+
+            if (minLon > maxLon) { double t = minLon; minLon = maxLon; maxLon = t; }
+            if (minLat > maxLat) { double t = minLat; minLat = maxLat; maxLat = t; }
+
+            calibrationViewModel.MinLon = minLon;
+            calibrationViewModel.MaxLon = maxLon;
+            calibrationViewModel.MinLat = minLat;
+            calibrationViewModel.MaxLat = maxLat;
+
+            StatusTextBox.Text = "Калибровка завершена, новые границы применены";
+        }
+        private Image FindImageOnClick(Point canvasPoint)
+        {
+            foreach (UIElement elem in MapCanvas.Children)
+            {
+                if (elem is Image img && img.Visibility == Visibility.Visible)
                 {
-                    try
+                    Point relativePoint = Mouse.GetPosition(img);
+                    if (relativePoint.X >= 0 && relativePoint.X <= img.ActualWidth &&
+                        relativePoint.Y >= 0 && relativePoint.Y <= img.ActualHeight)
                     {
-                        fileService.SaveLayerToGeoJson(layer, sfd.FileName);
-                        StatusTextBox.Text = $"Слой {layer.Name} был успешно сохранён в файл {sfd.FileName}";
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка", 
-                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return img;
                     }
                 }
             }
+            return null;
         }
     }
 }

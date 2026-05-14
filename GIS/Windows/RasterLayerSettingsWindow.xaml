@@ -1,0 +1,71 @@
+﻿<Window x:Class="GIS.Windows.RasterLayerSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:viewmodels="clr-namespace:GIS.Classes.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:RasterLayerSettingsViewModel}"
+        mc:Ignorable="d"
+        Title="Настройки растрового слоя" Height="Auto" Width="450"
+        WindowStartupLocation="CenterOwner" SizeToContent="Height">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Имя слоя:" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LayerName, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Видимость:" Margin="5" VerticalAlignment="Center"/>
+        <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding IsVisible}" Margin="5" VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Прозрачность:" Margin="5" VerticalAlignment="Center"/>
+        <Slider Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Opacity}" Margin="5"/>
+
+        <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Границы:" Margin="5" VerticalAlignment="Top" FontWeight="Bold"/>
+
+        <Grid Grid.Row="4" Grid.Column="1" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="MinLon:" Margin="5" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MinLon, UpdateSourceTrigger=PropertyChanged}" Margin="5" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="MaxLon:" Margin="5" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MaxLon, UpdateSourceTrigger=PropertyChanged}" Margin="5" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="MinLat:" Margin="5" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MinLat, UpdateSourceTrigger=PropertyChanged}" Margin="5" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="MaxLat:" Margin="5" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding MaxLat, UpdateSourceTrigger=PropertyChanged}" Margin="5" IsReadOnly="True"/>
+        </Grid>
+
+        <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Калибровка" Command="{Binding CalibrateCommand}" 
+                Width="120" Height="30" Margin="5" HorizontalAlignment="Center"/>
+
+        <Button Grid.Row="6" Grid.Column="0" Content="Отмена" Command="{Binding CancelCommand}" Width="80" Margin="5" HorizontalAlignment="Left"/>
+        <Button Grid.Row="6" Grid.Column="1" Content="Применить" Command="{Binding ApplyCommand}" Width="80" Margin="5" HorizontalAlignment="Right"/>
+    </Grid>
+</Window>

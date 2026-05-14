@@ -175,7 +175,6 @@ namespace GIS.Services
                 Width = bitmap.Width,
                 Height = bitmap.Height,
                 Stretch = Stretch.Uniform,
-                Tag = filePath
             };
 
             Canvas.SetLeft(image, 0);
@@ -186,6 +185,7 @@ namespace GIS.Services
             RasterLayer rasterLayer = new RasterLayer(image, Path.GetFileName(filePath));
             var translatedPoint = MapToCanvasTranslator.TranslateFromCanvasToGeo(bitmap.Width, bitmap.Height);
 
+            image.Tag = rasterLayer;
             rasterLayer.SetBounds(bounds);
 
             mapCanvas.Children.Add(image);
