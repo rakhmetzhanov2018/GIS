@@ -117,5 +117,10 @@ namespace GIS.Classes.ViewModels
             OnPropertyChanged(propertyName);
             return true;
         }
+
+        public RasterLayer GetRasterLayer()
+        {
+            return rasterLayer;
+        }
     }
 }

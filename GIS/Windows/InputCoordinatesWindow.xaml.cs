@@ -46,5 +46,10 @@ namespace GIS.Windows
             DialogResult = false;
             Close();
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.SizeToContent = SizeToContent.Height;
+        }
     }
 }

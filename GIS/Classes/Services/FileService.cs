@@ -183,7 +183,6 @@ namespace GIS.Services
             GeoBounds bounds = new GeoBounds(37.5, 37.7, 55.7, 55.9);
 
             RasterLayer rasterLayer = new RasterLayer(image, Path.GetFileName(filePath));
-            var translatedPoint = MapToCanvasTranslator.TranslateFromCanvasToGeo(bitmap.Width, bitmap.Height);
 
             image.Tag = rasterLayer;
             rasterLayer.SetBounds(bounds);

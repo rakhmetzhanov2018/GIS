@@ -36,8 +36,9 @@ namespace GIS.Windows
             viewModel.StartCalibration += (s, e) =>
             {
                 _closingForCalibration = true;
+                var targetLayer = (s as RasterLayerSettingsViewModel)?.GetRasterLayer();
                 Close();
-                (Owner as MainWindow).StartCalibrationProcess(viewModel);
+                (Owner as MainWindow).StartCalibrationProcess(viewModel, targetLayer);
             };
         }
     }

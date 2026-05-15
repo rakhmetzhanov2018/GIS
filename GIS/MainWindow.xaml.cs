@@ -1,4 +1,5 @@
-﻿using GIS.Classes.Factories;
+﻿using GIS.Classes.DrawObjects;
+using GIS.Classes.Factories;
 using GIS.Classes.Main;
 using GIS.Classes.Services;
 using GIS.Classes.ViewModels;
@@ -34,6 +35,7 @@ namespace GIS
         private RasterLayerSettingsViewModel calibrationViewModel;
         private List<Point> calibrationImagePoints = new List<Point>();
         private List<Point> calibrationGeoPoints = new List<Point>();
+        private RasterLayer calibrationTargetRasterLayer;
 
         public MainWindow()
         {
@@ -193,13 +195,21 @@ namespace GIS
                 var hitImage = FindImageOnClick(position);
                 if (hitImage != null && hitImage.Tag is RasterLayer rasterLayer)
                 {
+                    if (rasterLayer != calibrationTargetRasterLayer)
+                    {
+                        MessageBox.Show($"Калибровка проводится для слоя '{calibrationTargetRasterLayer?.Name}'. " +
+                           $"Вы кликнули на '{rasterLayer.Name}'. Пожалуйста, кликайте на целевой слой.",
+                           "Не тот слой", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        e.Handled = true;
+                        return;
+                    }
+
                     Point imagePoint = e.GetPosition(hitImage);
                     var dialog = new InputCoordinatesWindow();
                     if (dialog.ShowDialog() == true)
                     {
                         calibrationImagePoints.Add(imagePoint);
                         calibrationGeoPoints.Add(new Point(dialog.Lon, dialog.Lat));
-
                         if (calibrationImagePoints.Count >= 2)
                         {
                             RecalculateBounds(rasterLayer);
@@ -279,10 +289,9 @@ namespace GIS
             //    return;
             if (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons)
             {
-                // Разрешаем масштабирование, просто обрабатываем и потом обновляем временные фигуры
                 var mousePos2 = e.GetPosition(MapCanvas);
                 canvasManager.HandleMouseWheel(mousePos2, e.Delta);
-                canvasManager.UpdateTempFigures(); // <-- важно
+                canvasManager.UpdateTempFigures();
                 UpdateScale();
                 return;
             }
@@ -437,7 +446,11 @@ namespace GIS
                 //    MapToCanvasTranslator.GlobalOffsetX += 15;
                 //    break;
                 case Key.Escape:
-                    if (currentMapMode == MapMode.Select && isSelecting)
+                    if (isCalibrating)
+                    {
+                        EndCalibrationProcess();
+                    }
+                    else if (currentMapMode == MapMode.Select && isSelecting)
                     {
                         isSelecting = false;
                         selectionManager.EndRectangleSelection();
@@ -602,12 +615,17 @@ namespace GIS
             }
         }
 
-        public void StartCalibrationProcess(RasterLayerSettingsViewModel calibrationViewModel)
+        public void StartCalibrationProcess(RasterLayerSettingsViewModel calibrationViewModel, RasterLayer targetLayer)
         {
             isCalibrating = true;
             this.calibrationViewModel = calibrationViewModel;
+            calibrationTargetRasterLayer = targetLayer;
             calibrationGeoPoints.Clear();
             calibrationImagePoints.Clear();
+
+            canvasManager.ZoomToLayer(targetLayer);
+            Canvas.SetZIndex(calibrationTargetRasterLayer.RasterImage, 200);
+
             StatusTextBox.Text = "Включён режим калибровки, нажниме правой кнопкой на изображении для указания реальных географических коодринат";
         }
 
@@ -617,34 +635,53 @@ namespace GIS
             calibrationImagePoints.Clear();
             calibrationGeoPoints.Clear();
             StatusTextBox.Text = "Калибровка завершена.";
+
+            Canvas.SetZIndex(calibrationTargetRasterLayer.RasterImage, 0);
+
             if (calibrationViewModel != null)
             {
-                var newWindow = new RasterLayerSettingsWindow(calibrationViewModel);
-                newWindow.ShowDialog();
-                calibrationViewModel = null;
-            }
-        }
 
+                var newWindow = new RasterLayerSettingsWindow(calibrationViewModel);
+                if (newWindow.ShowDialog() == true)
+                {
+                    canvasManager.ZoomToLayer(calibrationTargetRasterLayer);
+                }
+                calibrationViewModel = null;
+                calibrationTargetRasterLayer = null;
+
+            }
+
+        }
         private void RecalculateBounds(RasterLayer rasterLayer)
         {
+            if (calibrationImagePoints.Count < 2) return;
+
             Point img1 = calibrationImagePoints[0];
             Point img2 = calibrationImagePoints[1];
             Point geo1 = calibrationGeoPoints[0];
             Point geo2 = calibrationGeoPoints[1];
 
-            double scaleX = (geo2.X - geo1.X) / (img2.X - img1.X);
-            double scaleY = (geo2.Y - geo1.Y) / (img2.Y - img1.Y);
-
-            double offsetX = geo1.X - img1.X * scaleX;
-            double offsetY = geo1.Y - img1.Y * scaleY;
-
             double imgWidth = rasterLayer.RasterImage.ActualWidth;
             double imgHeight = rasterLayer.RasterImage.ActualHeight;
 
-            double minLon = offsetX;
-            double maxLon = offsetX + imgWidth * scaleX;
-            double minLat = offsetY + imgHeight * scaleY;
-            double maxLat = offsetY;
+            double deltaX = img2.X - img1.X;
+
+            if (Math.Abs(deltaX) < 1e-6)
+            {
+                MessageBox.Show("Ошибка: точки имеют одинаковую X-координату. Выберите точки с разной долготой.",
+                                "Калибровка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                EndCalibrationProcess();
+                return;
+            }
+
+            double scale = (geo2.X - geo1.X) / deltaX;
+            double shiftX = geo1.X - scale * img1.X;
+            double shiftY = geo1.Y + scale * img1.Y;
+
+            double minLon = shiftX;
+            double maxLon = shiftX + scale * imgWidth;
+            double maxLat = shiftY;       
+            double minLat = shiftY - scale * imgHeight;
 
             if (minLon > maxLon) { double t = minLon; minLon = maxLon; maxLon = t; }
             if (minLat > maxLat) { double t = minLat; minLat = maxLat; maxLat = t; }
