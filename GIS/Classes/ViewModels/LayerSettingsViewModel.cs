@@ -1,13 +1,10 @@
 ﻿using GIS.Classes.Main;
 using GIS.Classes.Services;
 using GIS.Classes.Styles;
-using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Xml.Linq;
 
 namespace GIS.Classes.ViewModels
 {

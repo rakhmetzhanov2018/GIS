@@ -1,19 +1,12 @@
-﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.Factories;
-using GIS.Classes.Main;
+﻿using GIS.Classes.Main;
 using GIS.Classes.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace GIS.Classes.ViewModels
 {
-    
+
     public class AttributeField : ViewModelBase, IDataErrorInfo
     {
         private string _value;
@@ -22,7 +15,8 @@ namespace GIS.Classes.ViewModels
         public string Value
         {
             get => _value;
-            set {
+            set
+            {
                 if (_value != value)
                 {
                     _value = value;
@@ -95,7 +89,7 @@ namespace GIS.Classes.ViewModels
 
         private void Cancel() => CloseWindow?.Invoke(this, false);
 
-        private bool CanCreate() => AttributeFields.All(field => 
+        private bool CanCreate() => AttributeFields.All(field =>
             string.IsNullOrEmpty((field as IDataErrorInfo)[nameof(AttributeField.Value)]));
     }
 }

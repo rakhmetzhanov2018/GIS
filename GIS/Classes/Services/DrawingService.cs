@@ -4,15 +4,8 @@ using GIS.Classes.Main;
 using GIS.Classes.Services;
 using GIS.Classes.ViewModels;
 using GIS.Windows;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -77,7 +70,7 @@ namespace GIS.Classes.Managers
             if (viewModel.AttributeFields.Count == 0)
             {
                 AddFeatureToLayer(newGeo, props);
-            } 
+            }
             else if (window.ShowDialog() == true)
             {
                 foreach (var field in viewModel.AttributeFields)
@@ -103,7 +96,7 @@ namespace GIS.Classes.Managers
             var layerBounds = selectedLayer.Bounds;
             feature.Geometry.GetBounds(ref layerBounds);
             selectedLayer.Bounds = layerBounds;
-            
+
         }
 
         public void SetSelectedLayer(Layer selectedLayer)
@@ -116,7 +109,7 @@ namespace GIS.Classes.Managers
             var geoCoords = MapToCanvasTranslator.TranslateFromCanvasToGeo(position.X, position.Y);
 
             GeoGraphicPoint newGeo = new GeoGraphicPoint(geoCoords[0], geoCoords[1]);
-            
+
             CreateAttributeWindow(newGeo);
         }
         public void DrawLine(Point position)
@@ -140,7 +133,7 @@ namespace GIS.Classes.Managers
                 };
 
                 Canvas.SetZIndex(demoPolyLine, 100);
-                
+
 
                 IsDrawingLines = true;
                 mapCanvas.Children.Add(drawingLine);

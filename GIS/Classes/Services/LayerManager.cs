@@ -1,6 +1,5 @@
 ﻿using GIS.Classes.Main;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace GIS.Services
 {

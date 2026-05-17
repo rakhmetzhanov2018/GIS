@@ -1,5 +1,5 @@
-﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.Factories;
+﻿using GIS.Classes.Factories;
+using GIS.Classes.Layers;
 using GIS.Classes.Main;
 using GIS.Classes.Services;
 using GIS.Classes.ViewModels;
@@ -8,10 +8,8 @@ using GIS.Windows;
 using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace GIS
@@ -37,6 +35,8 @@ namespace GIS
         private List<Point> calibrationGeoPoints = new List<Point>();
         private RasterLayer calibrationTargetRasterLayer;
 
+        private OsmTileLayer osmLayer;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -49,6 +49,10 @@ namespace GIS
             selectionManager = new SelectionManager(MapCanvas, layerManager.layersList);
 
             LayerTreeView.ItemsSource = layerManager.layersList;
+
+            osmLayer = new OsmTileLayer(MapCanvas);
+            osmLayer.SetLayerType(OSMTileType.None);
+            layerManager.AddLayer(osmLayer);
         }
         private void MapCanvas_Loaded(object sender, RoutedEventArgs e)
         {
@@ -59,6 +63,7 @@ namespace GIS
             MapToCanvasTranslator.ResetGlobalOffsets();
             UpdateScale();
         }
+        
         #region Основные кнопки
         private void LoadFileButton_Click(object sender, RoutedEventArgs e) // чтение GEOJSON файла
         {
@@ -144,7 +149,7 @@ namespace GIS
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка", 
+                        MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка",
                             MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
@@ -169,7 +174,7 @@ namespace GIS
                     break;
 
                 case MapMode.Select:
-                    if (isSelecting && isLeftMouseButtonDown && 
+                    if (isSelecting && isLeftMouseButtonDown &&
                     e.LeftButton == MouseButtonState.Pressed)
                         selectionManager.UpdateRectangleSelection(currentMousePoint);
                     break;
@@ -320,6 +325,15 @@ namespace GIS
                     ShowFeatureInfo(selectedFeatures[0]);
             }
         }
+        private void MapCanvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (currentMapMode == MapMode.Select && isSelecting)
+            {
+                isSelecting = false;
+                isLeftMouseButtonDown = false;
+                selectionManager.EndRectangleSelection();
+            }
+        }
 
         #endregion Управление MapCanvas
 
@@ -341,7 +355,7 @@ namespace GIS
 
             MouseGeoCoordsTextBox.Text = $"Текущие координаты: {geoCoords[0]:F6}°; {geoCoords[1]:F6}°";
         }
-        
+
         #endregion Обновление статус-бара
 
         #region Управление кнопками слоёв
@@ -370,7 +384,7 @@ namespace GIS
                         StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
                     }
                 }
-                    
+
             }
         }
         private void LayerTableButton_Click(object sender, RoutedEventArgs e)
@@ -402,7 +416,7 @@ namespace GIS
                 canvasManager.DrawAll();
             }
         }
-        
+
         #endregion Управление кнопками слоёв
 
         #region FeaturePropertiesDataGrid
@@ -423,9 +437,9 @@ namespace GIS
                     Key = prop.Key,
                     Value = prop.Value
                 });
-            }           
+            }
         }
-        
+
         #endregion FeaturePropertiesDataGrid
 
         #region Экспериментальные/временные функции
@@ -465,7 +479,7 @@ namespace GIS
                 default:
                     return;
             }
-            
+
 
             foreach (Layer layer in layerManager.layersList)
             {
@@ -493,9 +507,9 @@ namespace GIS
                     _ => throw new NotImplementedException()
                 };
 
-            } 
+            }
         }
-        
+
         #endregion Экспериментальные/временные функции
 
         #region Функции удаления слоя/объекта
@@ -508,7 +522,7 @@ namespace GIS
                     var result = MessageBox.Show($"Вы уверели что хотите удалить слой '{layer.Name}'?",
                         "Удаление",
                         MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
-                    
+
                     if (result == MessageBoxResult.Yes)
                         DeleteLayer(layer);
                 }
@@ -549,7 +563,8 @@ namespace GIS
         }
 
         #endregion Функции удаления слоя/объекта
-        
+
+        #region Управление TreeView
         private void SelectFeatureInTreeView(Feature selectedFeature)
         {
             var layer = layerManager.FindLayerByFeature(selectedFeature);
@@ -581,7 +596,7 @@ namespace GIS
                 {
                     feature.IsSelected = true;
                 }
-                
+
             }
             else if (e.NewValue is Feature selectedFeature)
             {
@@ -592,7 +607,6 @@ namespace GIS
 
             isSelectionUpdated = false;
         }
-        
         private void ClearTreeViewSelection(ItemsControl control)
         {
             for (int i = 0; i < control.Items.Count; i++)
@@ -605,16 +619,9 @@ namespace GIS
                 }
             }
         }
-        private void MapCanvas_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (currentMapMode == MapMode.Select && isSelecting)
-            {
-                isSelecting = false;
-                isLeftMouseButtonDown = false;
-                selectionManager.EndRectangleSelection();
-            }
-        }
+        #endregion Управление TreeView
 
+        #region Калибрация изображения
         public void StartCalibrationProcess(RasterLayerSettingsViewModel calibrationViewModel, RasterLayer targetLayer)
         {
             isCalibrating = true;
@@ -628,7 +635,6 @@ namespace GIS
 
             StatusTextBox.Text = "Включён режим калибровки, нажниме правой кнопкой на изображении для указания реальных географических коодринат";
         }
-
         public void EndCalibrationProcess()
         {
             isCalibrating = false;
@@ -640,7 +646,6 @@ namespace GIS
 
             if (calibrationViewModel != null)
             {
-
                 var newWindow = new RasterLayerSettingsWindow(calibrationViewModel);
                 if (newWindow.ShowDialog() == true)
                 {
@@ -648,7 +653,6 @@ namespace GIS
                 }
                 calibrationViewModel = null;
                 calibrationTargetRasterLayer = null;
-
             }
 
         }
@@ -680,7 +684,7 @@ namespace GIS
 
             double minLon = shiftX;
             double maxLon = shiftX + scale * imgWidth;
-            double maxLat = shiftY;       
+            double maxLat = shiftY;
             double minLat = shiftY - scale * imgHeight;
 
             if (minLon > maxLon) { double t = minLon; minLon = maxLon; maxLon = t; }
@@ -709,5 +713,29 @@ namespace GIS
             }
             return null;
         }
+        #endregion Калибрация изображения
+
+        #region Кнопки изменения подложки
+        private void StreetMapButton_Click(object sender, RoutedEventArgs e)
+        {
+            osmLayer.SetLayerType(OSMTileType.Street);
+            osmLayer.UpdateAll();
+            canvasManager.DrawAll();
+        }
+
+        private void SatelliteButton_Click(object sender, RoutedEventArgs e)
+        {
+            osmLayer.SetLayerType(OSMTileType.Satellite);
+            osmLayer.UpdateAll();
+            canvasManager.DrawAll();
+        }
+
+        private void NoMapButton_Click(object sender, RoutedEventArgs e)
+        {
+            osmLayer.SetLayerType(OSMTileType.None);
+            osmLayer.UpdateAll();
+            canvasManager.DrawAll();
+        }
+        #endregion Кнопки изменения подложки
     }
 }

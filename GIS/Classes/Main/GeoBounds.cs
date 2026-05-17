@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GIS.Classes.Main
+﻿namespace GIS.Classes.Main
 {
     public struct GeoBounds
     {
@@ -43,7 +37,7 @@ namespace GIS.Classes.Main
             MaxLon = Math.Max(MaxLon, otherBounds.MaxLon);
             MinLat = Math.Min(MinLat, otherBounds.MinLat);
             MaxLat = Math.Max(MaxLat, otherBounds.MaxLat);
-        
+
         }
         public override string ToString()
         {

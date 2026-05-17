@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GIS
+﻿namespace GIS
 {
     public enum AttributeDataType
     {
@@ -26,5 +20,11 @@ namespace GIS
         Point,
         LineString,
         Polygon
+    }
+    public enum OSMTileType
+    {
+        None,
+        Satellite,
+        Street
     }
 }

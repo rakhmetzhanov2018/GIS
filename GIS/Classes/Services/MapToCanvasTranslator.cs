@@ -1,5 +1,4 @@
 ﻿using GIS.Classes.Main;
-using System.Data;
 using System.Windows;
 
 namespace GIS.Classes.Services
@@ -21,7 +20,7 @@ namespace GIS.Classes.Services
         }
         static public Point TranslateFromGeoToCanvas(double X, double Y)
         {
-            return new Point((X - Bounds.MinLon) * Ratio, 
+            return new Point((X - Bounds.MinLon) * Ratio,
                CanvasSize.Height - (Y - Bounds.MinLat) * Ratio);
         }
         static public string GetScale()
@@ -32,7 +31,7 @@ namespace GIS.Classes.Services
             double sqSinLon = Math.Pow(Math.Sin(deltaLon / 2), 2);
             double sqCosLat = Math.Pow(Math.Cos(Lat), 2);
 
-            double d = 2 * EARTH_RADIUS_CM * 
+            double d = 2 * EARTH_RADIUS_CM *
                 Math.Asin(Math.Sqrt(sqSinLon * sqCosLat));
 
             double pixelsPerCM = CanvasSize.Width / 96.0 * 2.54;
@@ -51,9 +50,9 @@ namespace GIS.Classes.Services
         }
         static public Point TranslateFromGeoToCanvasFinal(double lon, double lat)
         {
-            Point basePoint = TranslateFromGeoToCanvas(lon, lat);
-            double finalX = basePoint.X * GlobalScale + GlobalOffsetX;
-            double finalY = basePoint.Y * GlobalScale + GlobalOffsetY;
+            Point point = TranslateFromGeoToCanvas(lon, lat);
+            double finalX = point.X * GlobalScale + GlobalOffsetX;
+            double finalY = point.Y * GlobalScale + GlobalOffsetY;
             return new Point(finalX, finalY);
         }
         static public List<double[]> TranslateFromCanvasToGeo(List<Point> points)
@@ -67,12 +66,17 @@ namespace GIS.Classes.Services
 
             return newPoints;
         }
-
         static public void ResetGlobalOffsets()
         {
             GlobalOffsetX = 0;
             GlobalOffsetY = 0;
             GlobalScale = 1;
+        }
+        static public GeoBounds GetVisibleGeoBounds()
+        {
+            double[] topLeft = TranslateFromCanvasToGeo(0, 0);
+            double[] bottomRight = TranslateFromCanvasToGeo(CanvasSize.Width, CanvasSize.Height);
+            return new GeoBounds(topLeft[0], bottomRight[0], bottomRight[1], topLeft[1]);
         }
     }
 }

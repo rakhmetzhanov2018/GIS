@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace GIS.Classes.Services
+﻿namespace GIS.Classes.Services
 {
     public static class DataValidator
     {

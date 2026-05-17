@@ -1,8 +1,6 @@
-﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.Main;
+﻿using GIS.Classes.Main;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows.Documents;
 using System.Windows.Media;
 
 namespace GIS.Classes.Styles

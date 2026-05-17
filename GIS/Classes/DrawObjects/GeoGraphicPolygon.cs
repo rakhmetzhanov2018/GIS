@@ -1,12 +1,6 @@
 ﻿using GIS.Classes.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -18,7 +12,7 @@ namespace GIS.Classes.DrawObjects
         public GeoGraphicPolygon(List<List<double[]>> coords)
         {
             GeoCoords = coords.First();
-            
+
             for (int i = 1; i < coords.Count; i++)
             {
                 HolesGeoCoords.Add(coords[i]);
@@ -77,7 +71,7 @@ namespace GIS.Classes.DrawObjects
 
             mainPolygon.Points = newPoints;
         }
-        
+
         public new static GeoGraphicPolygon Parse(JsonElement polygons_coords)
         {
             var polygons = new List<List<double[]>>();

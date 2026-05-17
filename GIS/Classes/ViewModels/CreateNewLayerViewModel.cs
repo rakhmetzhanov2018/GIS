@@ -1,16 +1,7 @@
-﻿using GIS.Classes.Factories;
-using GIS.Classes.Main;
+﻿using GIS.Classes.Main;
 using GIS.Classes.Services;
-using Newtonsoft.Json.Bson;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO.Packaging;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace GIS.Classes.ViewModels
@@ -25,9 +16,9 @@ namespace GIS.Classes.ViewModels
         private string _newAttributeDefaultValue;
 
         public ObservableCollection<FeatureProperty> Attributes { get; set; }
-        public IEnumerable<AttributeDataType> DTypes => 
+        public IEnumerable<AttributeDataType> DTypes =>
             Enum.GetValues(typeof(AttributeDataType)).Cast<AttributeDataType>();
-        public IEnumerable<GeometryType> GTypes => 
+        public IEnumerable<GeometryType> GTypes =>
             Enum.GetValues(typeof(GeometryType)).Cast<GeometryType>();
 
         public string LayerName
@@ -121,7 +112,7 @@ namespace GIS.Classes.ViewModels
         {
             bool allAttributesValid = Attributes.All(attribute =>
                 string.IsNullOrEmpty(attribute.DefaultValue) || DataValidator.Validate(attribute.DefaultValue, attribute.DataType, out _));
-            return !string.IsNullOrWhiteSpace(LayerName) && allAttributesValid; 
+            return !string.IsNullOrWhiteSpace(LayerName) && allAttributesValid;
         }
 
         private void Cancel()
@@ -153,6 +144,6 @@ namespace GIS.Classes.ViewModels
 
             return true;
         }
-    } 
+    }
 }
 

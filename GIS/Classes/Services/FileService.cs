@@ -2,11 +2,8 @@
 using GIS.Classes.Factories;
 using GIS.Classes.Main;
 using GIS.Classes.Services;
-using GIS.Windows;
-using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -72,9 +69,9 @@ namespace GIS.Services
         {
             GeoGraphicObject geo = GeoGraphicObject.Parse(root.GetProperty("geometry"));
             Dictionary<string, string> dict = ParseProperties(root.GetProperty("properties"));
-            
+
             geo.GetBounds(ref bounds);
-            
+
             return new Feature(geo, dict);
         }
         private void ParseGeometryCollection(Layer layer, JsonElement root, ref GeoBounds bounds)
@@ -106,11 +103,11 @@ namespace GIS.Services
         private void ParseMultiPolygon(Layer layer, JsonElement root, ref GeoBounds bounds)
         {
             var coords = root.GetProperty("coordinates");
-            
+
             foreach (JsonElement polygons_coords in coords.EnumerateArray())
             {
                 GeoGraphicPolygon geoPolygon = GeoGraphicPolygon.Parse(polygons_coords);
-                
+
                 geoPolygon.GetBounds(ref bounds);
                 layer.AddObject(new Feature(geoPolygon, []));
             }

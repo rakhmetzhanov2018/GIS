@@ -1,4 +1,4 @@
-﻿<Window x:Class="GIS.MainWindow"
+﻿<Window x:Name="OnClosed" x:Class="GIS.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -27,8 +27,8 @@
             <StackPanel Grid.Row="0" Grid.Column="0" Margin="10" Background="Wheat">
                 <StackPanel.Resources>
                     <Style TargetType="Button">
-                        <Setter Property="Margin" Value="10"/>
-                        <Setter Property="FontSize" Value="20"/>
+                        <Setter Property="Margin" Value="5"/>
+                        <Setter Property="FontSize" Value="16"/>
                         <Setter Property="Width" Value="Auto"/>
                         <Setter Property="Height" Value="30"/>
                     </Style>
@@ -37,6 +37,12 @@
                 <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click"/>
                 <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click"/>
                 <Button Name="SaveLayerButton" Content="Сохранить слой" Click="SaveLayerButton_Click"/>
+                
+                <StackPanel Orientation="Horizontal" Margin="10">
+                    <Button Name="StreetMapButton" Content="Уличная" Click="StreetMapButton_Click" Width="80" Margin="2"/>
+                    <Button Name="SatelliteButton" Content="Спутник" Click="SatelliteButton_Click" Width="80" Margin="2"/>
+                    <Button Name="NoMapButton" Content="Нет" Click="NoMapButton_Click" Width="80" Margin="2"/>
+                </StackPanel>
 
                 <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
                     <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
@@ -54,9 +60,11 @@
                         <!-- <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/> -->
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <Setter Property="Tag" Value="{Binding}"/>
-
-                        
-                        
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShowInTree}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
                     </Style>
                 </TreeView.ItemContainerStyle>
 

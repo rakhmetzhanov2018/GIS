@@ -1,16 +1,8 @@
 ﻿using GIS.Classes.DrawObjects;
 using GIS.Classes.Styles;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.DirectoryServices;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace GIS.Classes.Main
@@ -23,6 +15,7 @@ namespace GIS.Classes.Main
         private GeometryType _geoType;
         private bool _isSelected;
         private ObservableCollection<FeatureProperty> _featureProperties;
+        private bool showInTree = true;
 
         public string Name
         {
@@ -37,9 +30,9 @@ namespace GIS.Classes.Main
             }
         }
         public bool IsVisible
-        { 
+        {
             get => _isVisible;
-            set 
+            set
             {
                 if (_isVisible != value)
                 {
@@ -47,7 +40,7 @@ namespace GIS.Classes.Main
                     OnPropertyChanged();
                     UpdateVisibility();
                 }
-            } 
+            }
         }
         public LayerStyle LayerStyle
         {
@@ -106,6 +99,11 @@ namespace GIS.Classes.Main
                 }
             }
         }
+        public bool ShowInTree
+        {
+            get => showInTree;
+            protected set => showInTree = value;
+        }
 
         public Layer()
         {
@@ -115,7 +113,7 @@ namespace GIS.Classes.Main
             Name = name;
             GeoType = geoType;
         }
-        
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public virtual void UpdateVisibility()
@@ -180,7 +178,7 @@ namespace GIS.Classes.Main
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        private void OnStylePropertyChanged(object sender, PropertyChangedEventArgs e) 
+        private void OnStylePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             ApplyStyleToAllFeatures();
         }

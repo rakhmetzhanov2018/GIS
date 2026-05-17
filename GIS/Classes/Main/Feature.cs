@@ -1,11 +1,7 @@
 ﻿using GIS.Classes.DrawObjects;
-using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Data;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Ink;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
@@ -41,7 +37,7 @@ namespace GIS.Classes.Main
 
             if (props.ContainsKey("name") && string.IsNullOrWhiteSpace(props["name"]))
             {
-                Name = props["name"];  
+                Name = props["name"];
             }
             else
             {
@@ -51,8 +47,8 @@ namespace GIS.Classes.Main
                     GeoGraphicLineString => $"Линия {Guid.NewGuid().ToString().Substring(0, 6)}",
                     GeoGraphicPolygon => $"Полигон {Guid.NewGuid().ToString().Substring(0, 6)}",
                     _ => throw new Exception("Проблема в типе объекта")
-                }; 
-                
+                };
+
             }
         }
 
