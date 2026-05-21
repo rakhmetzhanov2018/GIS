@@ -737,5 +737,16 @@ namespace GIS
             canvasManager.DrawAll();
         }
         #endregion Кнопки изменения подложки
+
+        private void BufferAnalysisButton_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = new BufferAnalysisViewModel(layerManager);
+            var window = new BufferAnalysisWindow(vm);
+            if (window.ShowDialog() == true)
+            {
+                canvasManager.DrawAll();
+                StatusTextBox.Text = "Буферный слой создан";
+            }
+        }
     }
 }

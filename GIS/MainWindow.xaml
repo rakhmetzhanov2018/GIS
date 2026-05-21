@@ -20,8 +20,8 @@
 
         <Grid Grid.Row="0" Grid.Column="0" Background="AntiqueWhite">
             <Grid.RowDefinitions>
-                <RowDefinition Height="40*"></RowDefinition>
                 <RowDefinition Height="60*"></RowDefinition>
+                <RowDefinition Height="40*"></RowDefinition>
             </Grid.RowDefinitions>
             
             <StackPanel Grid.Row="0" Grid.Column="0" Margin="10" Background="Wheat">
@@ -37,6 +37,7 @@
                 <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click"/>
                 <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click"/>
                 <Button Name="SaveLayerButton" Content="Сохранить слой" Click="SaveLayerButton_Click"/>
+                <Button Name="BufferAnalysisButton" Content="Создать буфер" Click="BufferAnalysisButton_Click"/>
                 
                 <StackPanel Orientation="Horizontal" Margin="10">
                     <Button Name="StreetMapButton" Content="Уличная" Click="StreetMapButton_Click" Width="80" Margin="2"/>
