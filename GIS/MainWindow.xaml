@@ -7,6 +7,122 @@
         xmlns:classes="clr-namespace:GIS.Classes.Main"
         mc:Ignorable="d"
         Title="GIS" Height="768" Width="1366">
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#CCCCCC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="RadioButton">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="#4A90D9"/>
+                                <Setter Property="BorderBrush" Value="#2C6BA0"/>
+                                <Setter Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style TargetType="RadioButton" x:Key="MapStyleRadio">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="#4A90D9"/>
+                                <Setter Property="BorderBrush" Value="#2C6BA0"/>
+                                <Setter Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" x:Key="MapStyleButton">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="2"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#CCCCCC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20*"/>
@@ -23,37 +139,53 @@
                 <RowDefinition Height="70*"></RowDefinition>
                 <RowDefinition Height="40*"></RowDefinition>
             </Grid.RowDefinitions>
-            
-            <StackPanel Grid.Row="0" Grid.Column="0" Margin="10" Background="Wheat">
-                <StackPanel.Resources>
-                    <Style TargetType="Button">
-                        <Setter Property="Margin" Value="5"/>
-                        <Setter Property="FontSize" Value="16"/>
-                        <Setter Property="Width" Value="Auto"/>
-                        <Setter Property="Height" Value="30"/>
-                    </Style>
-                </StackPanel.Resources>
-                <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click"/>
-                <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click"/>
-                <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click"/>
-                <Button Name="SaveLayerButton" Content="Сохранить слой" Click="SaveLayerButton_Click"/>
-                <Button Name="BufferAnalysisButton" Content="Создать буфер" Click="BufferAnalysisButton_Click"/>
-                <Button Name="SpatialQueryButton" Content="Пространственная выборка" Click="SpatialQueryButton_Click"/>
-                <Button Name="AttributeQueryButton" Content="Атрибутивный запрос" Click="AttributeQueryButton_Click"/>
-                
-                <StackPanel Orientation="Horizontal" Margin="10">
-                    <Button Name="StreetMapButton" Content="Уличная" Click="StreetMapButton_Click" Width="80" Margin="2"/>
-                    <Button Name="SatelliteButton" Content="Спутник" Click="SatelliteButton_Click" Width="80" Margin="2"/>
-                    <Button Name="NoMapButton" Content="Нет" Click="NoMapButton_Click" Width="80" Margin="2"/>
-                </StackPanel>
 
-                <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10">
-                    <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
-                    <RadioButton Content="SELECT" Click="MapModeRadioButton_Click" Tag="Select"/>
-                    <RadioButton Content="DRAW" Click="MapModeRadioButton_Click" Tag="Draw"/>
-                    <RadioButton Content="ЛИНЕЙКА" Click="MapModeRadioButton_Click" Tag="Ruler"/>
-                    <RadioButton Content="ПЛОЩАДЬ" Click="MapModeRadioButton_Click" Tag="Area"/>
-                </StackPanel>
+            <StackPanel Margin="5" Background="Wheat">
+                <GroupBox Header="Файл" Margin="0,0,0,5" Padding="2">
+                    <StackPanel>
+                        <Button Name="LoadFileButton" Content="Загрузить слой" Click="LoadFileButton_Click" Height="28" Margin="2"/>
+                        <Button Name="CreateLayerButton" Content="Создать слой" Click="CreateLayerButton_Click" Height="28" Margin="2"/>
+                        <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click" Height="28" Margin="2"/>
+                        <Button Name="SaveLayerButton" Content="Сохранить слой" Click="SaveLayerButton_Click" Height="28" Margin="2"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Анализы" Margin="0,0,0,5" Padding="2">
+                    <StackPanel>
+                        <Button Name="BufferAnalysisButton" Content="Буфер" Click="BufferAnalysisButton_Click" Height="28" Margin="2"/>
+                        <Button Name="SpatialQueryButton" Content="Пространственная выборка" Click="SpatialQueryButton_Click" Height="28" Margin="2"/>
+                        <Button Name="AttributeQueryButton" Content="Атрибутивный запрос" Click="AttributeQueryButton_Click" Height="28" Margin="2"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Подложка" Margin="0,0,0,5" Padding="2">
+                    <WrapPanel HorizontalAlignment="Center">
+                        <RadioButton x:Name="StreetMapRadio" Content="🗺️" ToolTip="Уличная карта" 
+                     GroupName="MapLayer" Tag="Street"
+                     Checked="MapLayerRadio_Checked" Width="40" Height="30" Margin="2" Style="{StaticResource MapStyleRadio}"/>
+                        <RadioButton x:Name="SatelliteRadio" Content="🛰️" ToolTip="Спутник" 
+                     GroupName="MapLayer" Tag="Satellite"
+                     Checked="MapLayerRadio_Checked" Width="40" Height="30" Margin="2" Style="{StaticResource MapStyleRadio}"/>
+                        <RadioButton x:Name="NoMapRadio" Content="❌" ToolTip="Нет подложки" 
+                     GroupName="MapLayer" Tag="None"
+                     Checked="MapLayerRadio_Checked" Width="40" Height="30" Margin="2" Style="{StaticResource MapStyleRadio}" Cursor="Hand"/>
+                    </WrapPanel>
+                </GroupBox>
+
+                <GroupBox Header="Инструменты" Margin="0,0,0,5" Padding="2">
+                    <WrapPanel HorizontalAlignment="Center">
+                        <RadioButton x:Name="MoveRadio" Content="🖱️" ToolTip="Перемещение" GroupName="Tools" IsChecked="True"
+                         Click="MapModeRadioButton_Click" Tag="Move" Width="40" Height="30" Margin="2"/>
+                        <RadioButton x:Name="SelectRadio" Content="🔲" ToolTip="Выделение" GroupName="Tools"
+                         Click="MapModeRadioButton_Click" Tag="Select" Width="40" Height="30" Margin="2"/>
+                        <RadioButton x:Name="DrawRadio" Content="✏️" ToolTip="Рисование" GroupName="Tools"
+                         Click="MapModeRadioButton_Click" Tag="Draw" Width="40" Height="30" Margin="2"/>
+                        <RadioButton x:Name="RulerRadio" Content="📏" ToolTip="Линейка" GroupName="Tools"
+                         Click="MapModeRadioButton_Click" Tag="Ruler" Width="40" Height="30" Margin="2"/>
+                        <RadioButton x:Name="AreaRadio" Content="📐" ToolTip="Площадь" GroupName="Tools"
+                         Click="MapModeRadioButton_Click" Tag="Area" Width="40" Height="30" Margin="2"/>
+                    </WrapPanel>
+                </GroupBox>
             </StackPanel>
 
             <TreeView x:Name="LayerTreeView" Grid.Row="1" Margin="10" Background="Wheat" Padding="0"

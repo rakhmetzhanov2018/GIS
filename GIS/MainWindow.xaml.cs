@@ -759,23 +759,24 @@ namespace GIS
         #endregion Калибрация изображения
 
         #region Кнопки изменения подложки
-        private void StreetMapButton_Click(object sender, RoutedEventArgs e)
+        private void MapLayerRadio_Checked(object sender, RoutedEventArgs e)
         {
-            osmLayer.SetLayerType(OSMTileType.Street);
-            osmLayer.UpdateAll();
-            canvasManager.DrawAll();
-        }
+            var radio = sender as RadioButton;
+            if (radio == null || !radio.IsChecked.HasValue || !radio.IsChecked.Value) return;
 
-        private void SatelliteButton_Click(object sender, RoutedEventArgs e)
-        {
-            osmLayer.SetLayerType(OSMTileType.Satellite);
-            osmLayer.UpdateAll();
-            canvasManager.DrawAll();
-        }
-
-        private void NoMapButton_Click(object sender, RoutedEventArgs e)
-        {
-            osmLayer.SetLayerType(OSMTileType.None);
+            string layerType = radio.Tag.ToString();
+            switch (layerType)
+            {
+                case "Street":
+                    osmLayer.SetLayerType(OSMTileType.Street);
+                    break;
+                case "Satellite":
+                    osmLayer.SetLayerType(OSMTileType.Satellite);
+                    break;
+                case "None":
+                    osmLayer.SetLayerType(OSMTileType.None);
+                    break;
+            }
             osmLayer.UpdateAll();
             canvasManager.DrawAll();
         }
