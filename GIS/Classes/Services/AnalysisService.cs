@@ -188,6 +188,14 @@ namespace GIS.Services
                 newFeature.Name = feature.Name;
                 newLayer.AddObject(newFeature);
             }
+
+            GeoBounds layerBounds = new GeoBounds();
+            foreach (var feature in newLayer.ObjectList)
+            {
+                feature.Geometry.GetBounds(ref layerBounds);
+            }
+            newLayer.Bounds = layerBounds;
+
             return newLayer;
         }
 

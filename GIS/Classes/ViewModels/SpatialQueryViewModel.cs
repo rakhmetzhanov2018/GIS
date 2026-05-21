@@ -65,8 +65,8 @@ namespace GIS.Classes.ViewModels
         {
             this.layerManager = layerManager;
             this.selectionManager = selectionManager;
-            SourceLayers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l.ShowInTree));
-            TargetLayers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l.ShowInTree));
+            SourceLayers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l is not RasterLayer && l.ShowInTree));
+            TargetLayers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l is not RasterLayer && l.ShowInTree));
             SelectedOperation = Operations.First();
             UseAllObjects = true;
             ResultHighlight = true;
@@ -111,7 +111,6 @@ namespace GIS.Classes.ViewModels
             {
                 MessageBox.Show("Не найдено объектов, удовлетворяющих условию запроса.",
                                 "Пространственная выборка", MessageBoxButton.OK, MessageBoxImage.Information);
-                CloseWindow?.Invoke(this, false);
                 return;
             }
 
@@ -137,7 +136,6 @@ namespace GIS.Classes.ViewModels
                 {
                     MessageBox.Show("Не удалось создать слой (возможно, пустой результат).",
                                     "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    CloseWindow?.Invoke(this, false);
                 }
             }
         }

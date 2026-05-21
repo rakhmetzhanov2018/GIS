@@ -2,55 +2,61 @@
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace GIS
 {
-    /// <summary>
-    /// Логика взаимодействия для LayerAttributesTableWindow.xaml
-    /// </summary>
     public partial class LayerAttributesTableWindow : Window
     {
-
         internal LayerAttributesTableWindow(Layer layer)
         {
             InitializeComponent();
-
             Loaded += (s, e) =>
             {
                 SizeToContent = SizeToContent.WidthAndHeight;
                 InvalidateMeasure();
             };
-
             FillTable(layer.ObjectList);
+            LayerItemsDataGrid.Loaded += (s, e) => AdjustColumnWidths();
         }
 
-        private void FillTable(ObservableCollection<Feature> ObjectList)
+        private void FillTable(ObservableCollection<Feature> objectList)
         {
-            DataTable dt = new DataTable();
+            var dt = new DataTable();
+            dt.Columns.Add("Название объекта", typeof(string));
 
-            if (ObjectList.Count == 0)
-                return;
-
-            foreach (var key in ObjectList[0].props.Keys)
+            if (objectList.Count > 0)
             {
-                dt.Columns.Add(key);
-            }
-
-            foreach (var obj in ObjectList)
-            {
-                var row = dt.NewRow();
-
-                foreach (var key in obj.props.Keys)
+                foreach (var key in objectList[0].props.Keys)
                 {
-                    if (dt.Columns.Contains(key))
-                        row[key] = obj.props.ContainsKey(key) ? obj.props[key] : "Нет данных";
+                    if (!dt.Columns.Contains(key))
+                        dt.Columns.Add(key);
                 }
-
-                dt.Rows.Add(row);
+                foreach (var obj in objectList)
+                {
+                    var row = dt.NewRow();
+                    row["Название объекта"] = obj.Name;
+                    foreach (var key in obj.props.Keys)
+                    {
+                        if (dt.Columns.Contains(key))
+                            row[key] = obj.props[key];
+                    }
+                    dt.Rows.Add(row);
+                }
             }
 
             LayerItemsDataGrid.ItemsSource = dt.DefaultView;
         }
 
+        private void AdjustColumnWidths()
+        {
+            foreach (DataGridColumn col in LayerItemsDataGrid.Columns)
+            {
+                if (col.Header?.ToString() == "Название объекта")
+                    col.Width = new DataGridLength(150);
+                else
+                    col.Width = DataGridLength.Auto;
+            }
+        }
     }
 }

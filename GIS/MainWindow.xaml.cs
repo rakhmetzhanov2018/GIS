@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace GIS
 {
@@ -133,27 +134,32 @@ namespace GIS
         }
         private void SaveLayerButton_Click(object sender, RoutedEventArgs e)
         {
-            if (LayerTreeView.SelectedItem is Layer layer)
+            var layer = LayerTreeView.SelectedItem as Layer;
+            if (layer == null || !layerManager.layersList.Contains(layer) || layer is OsmTileLayer || layer is RasterLayer)
             {
-                var sfd = new SaveFileDialog()
-                {
-                    Filter = "GEOfiles (*.geojson;*.geo.json)|*.geojson;*.geo.json|All files (*.*)|*.*",
-                    DefaultExt = ".geo.json",
-                    FileName = layer.Name + ".geo.json"
-                };
+                MessageBox.Show("Выберите векторный слой (не подложку и не растровое изображение) для сохранения.", 
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-                if (sfd.ShowDialog() == true)
+            var sfd = new SaveFileDialog()
+            {
+                Filter = "GEOfiles (*.geojson;*.geo.json)|*.geojson;*.geo.json|All files (*.*)|*.*",
+                DefaultExt = ".geo.json",
+                FileName = layer.Name + ".geo.json"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
                 {
-                    try
-                    {
-                        fileService.SaveLayerToGeoJson(layer, sfd.FileName);
-                        StatusTextBox.Text = $"Слой {layer.Name} был успешно сохранён в файл {sfd.FileName}";
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    fileService.SaveLayerToGeoJson(layer, sfd.FileName);
+                    StatusTextBox.Text = $"Слой {layer.Name} был успешно сохранён в файл {sfd.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Произошла ошибка сохранения {ex}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -197,6 +203,7 @@ namespace GIS
         }
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            MapCanvas.Focus();
             var position = e.GetPosition(MapCanvas);
 
             if (e.RightButton == MouseButtonState.Pressed && (currentMapMode == MapMode.Ruler || currentMapMode == MapMode.Area))
@@ -286,21 +293,25 @@ namespace GIS
                     break;
 
                 case MapMode.Draw:
-                    if (LayerTreeView.SelectedItem is Layer selectedLayer)
+                    var selectedLayer = LayerTreeView.SelectedItem as Layer;
+                    if (selectedLayer == null || !layerManager.layersList.Contains(selectedLayer) || selectedLayer is OsmTileLayer || selectedLayer is RasterLayer)
                     {
-                        canvasManager.SetSelectedLayer(selectedLayer);
-                        switch (selectedLayer.GeoType)
-                        {
-                            case GeometryType.Point:
-                                canvasManager.DrawPoint(position);
-                                break;
-                            case GeometryType.LineString:
-                                canvasManager.DrawLine(position);
-                                break;
-                            case GeometryType.Polygon:
-                                canvasManager.DrawPolygon(position);
-                                break;
-                        }
+                        StatusTextBox.Text = "Выберите векторный слой (не подложку и не растровое изображение) для рисования.";
+                        break;
+                    }
+
+                    canvasManager.SetSelectedLayer(selectedLayer);
+                    switch (selectedLayer.GeoType)
+                    {
+                        case GeometryType.Point:
+                            canvasManager.DrawPoint(position);
+                            break;
+                        case GeometryType.LineString:
+                            canvasManager.DrawLine(position);
+                            break;
+                        case GeometryType.Polygon:
+                            canvasManager.DrawPolygon(position);
+                            break;
                     }
                     canvasManager.DrawAll();
                     break;
@@ -496,18 +507,17 @@ namespace GIS
                     if (isCalibrating)
                     {
                         EndCalibrationProcess();
+                        break;
                     }
-                    else if (currentMapMode == MapMode.Select && isSelecting)
+                    if (currentMapMode == MapMode.Select && isSelecting)
                     {
                         isSelecting = false;
                         selectionManager.EndRectangleSelection();
                         selectionManager.ClearSelection();
                         FeaturePropertiesGrid.Visibility = Visibility.Hidden;
+                        break;
                     }
-                    else
-                    {
-                        canvasManager.CancelDrawing();
-                    }
+                    canvasManager.CancelDrawing();
                     break;
                 default:
                     return;
@@ -522,7 +532,6 @@ namespace GIS
         }
         private void MapModeRadioButton_Click(object sender, EventArgs e)
         {
-            // Отменяем текущее измерение при смене режима
             //canvasManager.CancelMeasure();
             canvasManager.StopMeasuring();
 
@@ -744,7 +753,7 @@ namespace GIS
         {
             foreach (UIElement elem in MapCanvas.Children)
             {
-                if (elem is Image img && img.Visibility == Visibility.Visible)
+                if (elem is Image img && img.Visibility == Visibility.Visible && img.Tag is RasterLayer)
                 {
                     Point relativePoint = Mouse.GetPosition(img);
                     if (relativePoint.X >= 0 && relativePoint.X <= img.ActualWidth &&

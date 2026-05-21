@@ -82,7 +82,7 @@ namespace GIS.Classes.ViewModels
         {
             this.layerManager = layerManager;
             this.selectionManager = selectionManager;
-            Layers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l.ShowInTree));
+            Layers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l is not RasterLayer && l.ShowInTree));
 
             ExecuteCommand = new RelayCommand(Execute, CanExecute);
             CancelCommand = new RelayCommand(Cancel);

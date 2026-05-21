@@ -25,7 +25,7 @@ namespace GIS.Classes.ViewModels
         public BufferAnalysisViewModel(LayerManager layerManager)
         {
             this.layerManager = layerManager;
-            Layers = new ObservableCollection<Layer>(layerManager.layersList);
+            Layers = new ObservableCollection<Layer>(layerManager.layersList.Where(l => l is not RasterLayer && l.ShowInTree));
             CreateCommand = new RelayCommand(Create, CanCreate);
             CancelCommand = new RelayCommand(Cancel);
         }

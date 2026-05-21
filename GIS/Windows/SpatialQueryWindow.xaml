@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS.Windows"
         mc:Ignorable="d"
-        Title="Пространственная выборка" Height="400" Width="450"
+        Title="Пространственная выборка" Height="420" Width="450"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -21,13 +21,13 @@
         <GroupBox Header="Исходный слой" Grid.Row="0" Margin="0,5">
             <StackPanel Margin="5">
                 <ComboBox ItemsSource="{Binding SourceLayers}" DisplayMemberPath="Name" 
-                          SelectedItem="{Binding SelectedSourceLayer}" 
-                          SelectionChanged="SourceLayer_SelectionChanged"/>
+                  SelectedItem="{Binding SourceLayer}" 
+                  SelectionChanged="SourceLayer_SelectionChanged"/>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <RadioButton Content="Все объекты" GroupName="SourceMode" 
-                                 IsChecked="{Binding UseAllObjects}" Margin="0,0,10,0"/>
+                         IsChecked="{Binding UseAllObjects}" Margin="0,0,10,0"/>
                     <RadioButton Content="Только выделенные" GroupName="SourceMode" 
-                                 IsChecked="{Binding UseSelectedOnly}"/>
+                         IsChecked="{Binding UseSelectedOnly}"/>
                 </StackPanel>
                 <TextBlock Text="{Binding SelectedCountInfo}" Margin="5,2,0,0" FontSize="11" Foreground="Gray"/>
             </StackPanel>
@@ -42,7 +42,7 @@
         <GroupBox Header="Целевой слой" Grid.Row="2" Margin="0,5">
             <StackPanel Margin="5">
                 <ComboBox ItemsSource="{Binding TargetLayers}" DisplayMemberPath="Name" 
-                          SelectedItem="{Binding SelectedTargetLayer}"/>
+                  SelectedItem="{Binding TargetLayer}"/>
             </StackPanel>
         </GroupBox>
 
