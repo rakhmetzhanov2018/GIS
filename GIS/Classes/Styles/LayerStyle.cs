@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace GIS.Classes.Styles
 {
-    public abstract class LayerStyle : INotifyPropertyChanged
+    public abstract class LayerStyle : INotifyPropertyChanged, ICloneable
     {
         private double opacity = 1.0;
         private Color mainColor = Colors.Red;
@@ -37,10 +37,16 @@ namespace GIS.Classes.Styles
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public abstract void ApplyToFeature(Feature feature);
+        public abstract LayerStyle Clone();
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
         }
     }
 }

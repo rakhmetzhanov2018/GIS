@@ -38,6 +38,7 @@
                 <Button Name="ImportImageButton" Content="Импортировать фото" Click="ImportImageButton_Click"/>
                 <Button Name="SaveLayerButton" Content="Сохранить слой" Click="SaveLayerButton_Click"/>
                 <Button Name="BufferAnalysisButton" Content="Создать буфер" Click="BufferAnalysisButton_Click"/>
+                <Button Name="SpatialQueryButton" Content="Пространственная выборка" Click="SpatialQueryButton_Click"/>
                 
                 <StackPanel Orientation="Horizontal" Margin="10">
                     <Button Name="StreetMapButton" Content="Уличная" Click="StreetMapButton_Click" Width="80" Margin="2"/>

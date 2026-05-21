@@ -39,5 +39,10 @@ namespace GIS.Classes.Styles
                 polyline.Opacity = Opacity;
             }
         }
+
+        public override LineStringStyle Clone()
+        {
+            return new LineStringStyle(this);
+        }
     }
 }

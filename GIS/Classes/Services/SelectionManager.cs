@@ -14,6 +14,7 @@ namespace GIS.Services
         private Rectangle selectionRectangle;
         private List<Feature> selectedFeatures = new();
         private Point _rectangleStartPoint;
+        public event EventHandler SelectionChanged;
 
         public SelectionManager(Canvas canvas, ObservableCollection<Layer> layers)
         {
@@ -21,6 +22,12 @@ namespace GIS.Services
             layersList = layers;
             CreateSelectionRectangle();
         }
+
+        private void OnSelectionChanged()
+        {
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+        public void RaiseSelectionChanged() => OnSelectionChanged();
 
         private void CreateSelectionRectangle()
         {
@@ -48,6 +55,7 @@ namespace GIS.Services
                 layer.IsSelected = false;
             }
             selectedFeatures.Clear();
+            OnSelectionChanged();
         }
 
         public void SelectFeature(Feature feature)
@@ -55,6 +63,7 @@ namespace GIS.Services
             ClearSelection();
             feature.IsSelected = true;
             selectedFeatures.Add(feature);
+            OnSelectionChanged();
         }
 
         public void StartRectangleSelection(Point startPoint)
@@ -93,6 +102,7 @@ namespace GIS.Services
                 feature.IsSelected = true;
                 selectedFeatures.Add(feature);
             }
+            OnSelectionChanged();
         }
 
         private List<Feature> FindSelectedFeatures()

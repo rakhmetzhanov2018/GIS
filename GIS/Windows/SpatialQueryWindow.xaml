@@ -1,0 +1,61 @@
+﻿<Window x:Class="GIS.Windows.SpatialQueryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GIS.Windows"
+        mc:Ignorable="d"
+        Title="Пространственная выборка" Height="400" Width="450"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Исходный слой" Grid.Row="0" Margin="0,5">
+            <StackPanel Margin="5">
+                <ComboBox ItemsSource="{Binding SourceLayers}" DisplayMemberPath="Name" 
+                          SelectedItem="{Binding SelectedSourceLayer}" 
+                          SelectionChanged="SourceLayer_SelectionChanged"/>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <RadioButton Content="Все объекты" GroupName="SourceMode" 
+                                 IsChecked="{Binding UseAllObjects}" Margin="0,0,10,0"/>
+                    <RadioButton Content="Только выделенные" GroupName="SourceMode" 
+                                 IsChecked="{Binding UseSelectedOnly}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding SelectedCountInfo}" Margin="5,2,0,0" FontSize="11" Foreground="Gray"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Пространственное отношение" Grid.Row="1" Margin="0,5">
+            <StackPanel Margin="5">
+                <ComboBox ItemsSource="{Binding Operations}" SelectedItem="{Binding SelectedOperation}" Width="120"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Целевой слой" Grid.Row="2" Margin="0,5">
+            <StackPanel Margin="5">
+                <ComboBox ItemsSource="{Binding TargetLayers}" DisplayMemberPath="Name" 
+                          SelectedItem="{Binding SelectedTargetLayer}"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Результат" Grid.Row="3" Margin="0,5">
+            <StackPanel Margin="5">
+                <RadioButton Content="Выделить объекты" GroupName="ResultMode" 
+                             IsChecked="{Binding ResultHighlight}" Margin="0,0,10,0"/>
+                <RadioButton Content="Создать новый слой" GroupName="ResultMode" 
+                             IsChecked="{Binding ResultCreateLayer}"/>
+            </StackPanel>
+        </GroupBox>
+
+        <Button Grid.Row="5" Content="Выполнить" Command="{Binding ExecuteCommand}" Width="80" Margin="5,20,5,5" IsDefault="True" HorizontalAlignment="Right"/>
+        <Button Grid.Row="5" Content="Отмена" Command="{Binding CancelCommand}" Width="80" Margin="5,20,5,5" IsCancel="True" HorizontalAlignment="Left"/>
+    </Grid>
+</Window>

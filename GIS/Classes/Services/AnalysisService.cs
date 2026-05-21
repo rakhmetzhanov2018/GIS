@@ -86,8 +86,14 @@ namespace GIS.Services
             }
             if (geo is GeoGraphicPolygon polygon)
             {
-                var coords = polygon.GeoCoords.Select(c => new Coordinate(c[0], c[1])).ToArray();
-                return factory.CreatePolygon(coords);
+                var coordsList = polygon.GeoCoords.Select(c => new Coordinate(c[0], c[1])).ToList();
+                if (coordsList.Count < 3) return null;
+
+                if (!coordsList.First().Equals2D(coordsList.Last()))
+                    coordsList.Add(coordsList.First()); 
+
+                var LinRing = factory.CreateLinearRing(coordsList.ToArray());
+                return factory.CreatePolygon(LinRing);
             }
             return null;
         }
@@ -124,6 +130,76 @@ namespace GIS.Services
                 }
             }
             return result;
+        }
+        public static List<Feature> SpatialQuery(Layer sourceLayer, Layer targetLayer, string operation, List<Feature> sourceFeatures = null)
+        {
+            var sourceList = sourceFeatures ?? sourceLayer.ObjectList.ToList();
+            var result = new List<Feature>();
+
+            foreach (var scrFeature in sourceList)
+            {
+                var sourceGeo = ConvertToNtsGeometry(scrFeature.Geometry);
+                if (sourceGeo == null) continue;
+
+                foreach (var TrgFeature in targetLayer.ObjectList)
+                {
+                    var targetGeo = ConvertToNtsGeometry(TrgFeature.Geometry);
+                    if (targetGeo == null) continue;
+
+                    bool matches = operation switch
+                    {
+                        "Intersects" => sourceGeo.Intersects(targetGeo),
+                        "Contains" => sourceGeo.Contains(targetGeo),
+                        "Within" => sourceGeo.Within(targetGeo),
+                        _ => false
+                    };
+                    if (matches)
+                    {
+                        result.Add(scrFeature);
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+
+        public static Layer CreateLayerFromFeatures(List<Feature> features, string layerName)
+        {
+            if (features == null || features.Count == 0)
+                return null;
+
+            if (features.First().Geometry == null)
+                return null;
+
+            GeometryType geoType = features.First().Geometry switch
+            {
+                GeoGraphicPoint => GeometryType.Point,
+                GeoGraphicLineString => GeometryType.LineString,
+                GeoGraphicPolygon => GeometryType.Polygon,
+                _ => GeometryType.Point
+            };
+
+            var newLayer = new Layer(layerName, geoType);
+            foreach (var feature in features)
+            {
+                var newGeo = CloneGeometry(feature.Geometry);
+                var newProps = new Dictionary<string, string>(feature.props);
+                var newFeature = new Feature(newGeo, newProps);
+                newFeature.Name = feature.Name;
+                newLayer.AddObject(newFeature);
+            }
+            return newLayer;
+        }
+
+        private static GeoGraphicObject CloneGeometry(GeoGraphicObject geo)
+        {
+            if (geo is GeoGraphicPoint point)
+                return new GeoGraphicPoint(point.GeoCoords[0][0], point.GeoCoords[0][1]);
+            if (geo is GeoGraphicLineString line)
+                return new GeoGraphicLineString(line.GeoCoords.Select(c => new double[] { c[0], c[1] }).ToList());
+            if (geo is GeoGraphicPolygon polygon)
+                return new GeoGraphicPolygon(new List<List<double[]>> { polygon.GeoCoords.Select(c => new double[] { c[0], c[1] }).ToList() });
+            return null;
         }
     }
 }

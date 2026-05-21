@@ -748,5 +748,16 @@ namespace GIS
                 StatusTextBox.Text = "Буферный слой создан";
             }
         }
+
+        private void SpatialQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = new SpatialQueryViewModel(layerManager, selectionManager);
+            var window = new SpatialQueryWindow(vm);
+            if (window.ShowDialog() == true)
+            {
+                canvasManager.DrawAll();
+                StatusTextBox.Text = "Пространственная выборка выполнена";
+            }
+        }
     }
 }

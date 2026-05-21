@@ -41,5 +41,10 @@ namespace GIS.Classes.Styles
                 ellipse.Opacity = Opacity;
             }
         }
+
+        public override PointStyle Clone()
+        {
+            return new PointStyle(this);
+        }
     }
 }

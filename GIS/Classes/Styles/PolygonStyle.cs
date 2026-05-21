@@ -56,5 +56,10 @@ namespace GIS.Classes.Styles
                 polygon.Fill = new SolidColorBrush(FillColor);
             }
         }
+
+        public override PolygonStyle Clone()
+        {
+            return new PolygonStyle(this);
+        }
     }
 }
