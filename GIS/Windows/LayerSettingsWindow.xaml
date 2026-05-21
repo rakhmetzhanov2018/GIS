@@ -4,13 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS.Windows"
-        xmlns:converters="clr-namespace:GIS.Classes.Converters"
         xmlns:controls="clr-namespace:GIS.UserControls"
         mc:Ignorable="d"
         Title="LayerSettingsWindow" Height="Auto" MaxWidth="500" WindowStartupLocation="CenterScreen">
-    
+
     <Window.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <DataTemplate x:Key="PointSettings">
             <Grid>
                 <Grid.ColumnDefinitions>

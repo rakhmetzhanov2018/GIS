@@ -759,5 +759,16 @@ namespace GIS
                 StatusTextBox.Text = "Пространственная выборка выполнена";
             }
         }
+
+        private void AttributeQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = new AttributeQueryViewModel(layerManager, selectionManager);
+            var window = new AttributeQueryWindow(vm);
+            if (window.ShowDialog() == true)
+            {
+                canvasManager.DrawAll();
+                StatusTextBox.Text = "Атрибутивный запрос выполнен";
+            }
+        }
     }
 }
