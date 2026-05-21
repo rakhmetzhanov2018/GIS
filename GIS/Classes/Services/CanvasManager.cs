@@ -121,5 +121,23 @@ namespace GIS.Services
         {
             drawingService.UpdateTempFigures();
         }
+
+
+        public void StartMeasureDistance() => drawingService.StartMeasureDistance();
+        public void AddDistancePoint(Point point) => drawingService.AddDistancePoint(point);
+        public void UpdateDistanceRubber(Point point) => drawingService.UpdateMouseDistance(point);
+        public void EndMeasureDistance() => drawingService.EndMeasureDistance();
+
+        public void StartMeasureArea() => drawingService.StartMeasureArea();
+        public void AddAreaPoint(Point point) => drawingService.AddAreaPoint(point);
+        public void UpdateAreaRubber(Point point) => drawingService.UpdateMouseArea(point);
+        public void EndMeasureArea() => drawingService.EndMeasureArea();
+
+        public void CancelMeasure() => drawingService.CancelMeasure();
+        public void StopMeasuring() => drawingService.StopMeasuring();
+
+        public event Action<string> MeasureStatusMessage { 
+            add => drawingService.StatusMessage += value; remove => drawingService.StatusMessage -= value; 
+        }
     }
 }

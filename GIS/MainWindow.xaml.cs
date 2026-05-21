@@ -53,6 +53,8 @@ namespace GIS
             osmLayer = new OsmTileLayer(MapCanvas);
             osmLayer.SetLayerType(OSMTileType.None);
             layerManager.AddLayer(osmLayer);
+
+            canvasManager.MeasureStatusMessage += msg => StatusTextBox.Text = msg;
         }
         private void MapCanvas_Loaded(object sender, RoutedEventArgs e)
         {
@@ -185,11 +187,27 @@ namespace GIS
                     else if (canvasManager.IsDrawingPolygons)
                         canvasManager.UpdateDrawingPolygon(currentMousePoint);
                     break;
+                case MapMode.Ruler:
+                    canvasManager.UpdateDistanceRubber(currentMousePoint);
+                    break;
+                case MapMode.Area:
+                    canvasManager.UpdateAreaRubber(currentMousePoint);
+                    break;
             }
         }
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var position = e.GetPosition(MapCanvas);
+
+            if (e.RightButton == MouseButtonState.Pressed && (currentMapMode == MapMode.Ruler || currentMapMode == MapMode.Area))
+            {
+                if (currentMapMode == MapMode.Ruler)
+                    canvasManager.EndMeasureDistance();
+                else
+                    canvasManager.EndMeasureArea();
+                e.Handled = true;
+                return;
+            }
 
             if (e.RightButton == MouseButtonState.Pressed && (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons))
             {
@@ -286,12 +304,22 @@ namespace GIS
                     }
                     canvasManager.DrawAll();
                     break;
+                case MapMode.Ruler:
+                    if (e.LeftButton == MouseButtonState.Pressed)
+                        canvasManager.AddDistancePoint(position);
+                    break;
+                case MapMode.Area:
+                    if (e.LeftButton == MouseButtonState.Pressed)
+                        canvasManager.AddAreaPoint(position);
+                    break;
             }
         }
         private void MapCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             //if (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons)
             //    return;
+            if (currentMapMode == MapMode.Ruler || currentMapMode == MapMode.Area)
+                return;
             if (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons)
             {
                 var mousePos2 = e.GetPosition(MapCanvas);
@@ -460,6 +488,11 @@ namespace GIS
                 //    MapToCanvasTranslator.GlobalOffsetX += 15;
                 //    break;
                 case Key.Escape:
+                    if (currentMapMode == MapMode.Ruler || currentMapMode == MapMode.Area)
+                    {
+                        canvasManager.CancelMeasure();
+                        break;
+                    }
                     if (isCalibrating)
                     {
                         EndCalibrationProcess();
@@ -489,6 +522,10 @@ namespace GIS
         }
         private void MapModeRadioButton_Click(object sender, EventArgs e)
         {
+            // Отменяем текущее измерение при смене режима
+            //canvasManager.CancelMeasure();
+            canvasManager.StopMeasuring();
+
             if (currentMapMode == MapMode.Select && isSelecting)
             {
                 isSelecting = false;
@@ -504,9 +541,15 @@ namespace GIS
                     "Move" => MapMode.Move,
                     "Select" => MapMode.Select,
                     "Draw" => MapMode.Draw,
+                    "Ruler" => MapMode.Ruler,
+                    "Area" => MapMode.Area,
                     _ => throw new NotImplementedException()
                 };
 
+                if (currentMapMode == MapMode.Ruler)
+                    canvasManager.StartMeasureDistance();
+                else if (currentMapMode == MapMode.Area)
+                    canvasManager.StartMeasureArea();
             }
         }
 

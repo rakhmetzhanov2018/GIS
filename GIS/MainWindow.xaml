@@ -20,7 +20,7 @@
 
         <Grid Grid.Row="0" Grid.Column="0" Background="AntiqueWhite">
             <Grid.RowDefinitions>
-                <RowDefinition Height="60*"></RowDefinition>
+                <RowDefinition Height="70*"></RowDefinition>
                 <RowDefinition Height="40*"></RowDefinition>
             </Grid.RowDefinitions>
             
@@ -47,10 +47,12 @@
                     <Button Name="NoMapButton" Content="Нет" Click="NoMapButton_Click" Width="80" Margin="2"/>
                 </StackPanel>
 
-                <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10" >
+                <StackPanel x:Name="MapModePanel" Orientation="Vertical" Margin="10">
                     <RadioButton Content="MOVE" IsChecked="True" Click="MapModeRadioButton_Click" Tag="Move"/>
                     <RadioButton Content="SELECT" Click="MapModeRadioButton_Click" Tag="Select"/>
                     <RadioButton Content="DRAW" Click="MapModeRadioButton_Click" Tag="Draw"/>
+                    <RadioButton Content="ЛИНЕЙКА" Click="MapModeRadioButton_Click" Tag="Ruler"/>
+                    <RadioButton Content="ПЛОЩАДЬ" Click="MapModeRadioButton_Click" Tag="Area"/>
                 </StackPanel>
             </StackPanel>
 

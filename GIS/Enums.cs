@@ -12,7 +12,9 @@
     {
         Move,
         Select,
-        Draw
+        Draw,
+        Ruler,
+        Area
     }
 
     public enum GeometryType
