@@ -124,7 +124,8 @@ namespace GIS.Classes.ViewModels
             else if (ResultCreateLayer)
             {
                 var newLayer = AnalysisService.CreateLayerFromFeatures(resultFeatures,
-                        $"{SourceLayer.Name}_пространственная_выборка_{Guid.NewGuid().ToString().Substring(0, 6)}");
+                        $"{SourceLayer.Name}_пространственная_выборка_{Guid.NewGuid().ToString().Substring(0, 6)}",
+                        SourceLayer.LayerStyle);
                 if (newLayer != null)
                 {
                     newLayer.LayerStyle = SourceLayer.LayerStyle?.Clone() as LayerStyle;

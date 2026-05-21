@@ -135,7 +135,7 @@ namespace GIS.Classes.ViewModels
             else if (ResultCreateLayer)
             {
                 var newLayer = AnalysisService.CreateLayerFromFeatures(result,
-                    $"{SelectedLayer.Name}_атрибутивная_выборка_{Guid.NewGuid().ToString().Substring(0, 6)}");
+                    $"{SelectedLayer.Name}_атрибутивная_выборка_{Guid.NewGuid().ToString().Substring(0, 6)}", SelectedLayer.LayerStyle);
                 if (newLayer != null)
                 {
                     newLayer.LayerStyle = SelectedLayer.LayerStyle?.Clone() as LayerStyle;

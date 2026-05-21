@@ -10,7 +10,7 @@ namespace GIS.Classes.DrawObjects
     {
         public GeoGraphicLineString(List<double[]> coords)
         {
-            GeoCoords = coords;
+            GeoCoords = new List<double[]>(coords);
         }
 
         public GeoGraphicLineString(List<Point> coords)

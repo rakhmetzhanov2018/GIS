@@ -6,6 +6,7 @@ using GIS.Classes.ViewModels;
 using GIS.Services;
 using GIS.Windows;
 using Microsoft.Win32;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -219,6 +220,7 @@ namespace GIS
             if (e.RightButton == MouseButtonState.Pressed && (canvasManager.IsDrawingLines || canvasManager.IsDrawingPolygons))
             {
                 canvasManager.EndDrawing();
+                canvasManager.DrawAll();
             }
             if (e.RightButton == MouseButtonState.Pressed && isCalibrating)
             {
@@ -349,6 +351,7 @@ namespace GIS
             if (LayerTreeView.SelectedItem is Layer layer)
             {
                 canvasManager.ZoomToLayer(layer);
+                UpdateScale();
             }
         }
         private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
@@ -683,6 +686,8 @@ namespace GIS
             calibrationImagePoints.Clear();
 
             canvasManager.ZoomToLayer(targetLayer);
+            UpdateScale();
+
             Canvas.SetZIndex(calibrationTargetRasterLayer.RasterImage, 200);
 
             StatusTextBox.Text = "Включён режим калибровки, нажниме правой кнопкой на изображении для указания реальных географических коодринат";
@@ -702,6 +707,7 @@ namespace GIS
                 if (newWindow.ShowDialog() == true)
                 {
                     canvasManager.ZoomToLayer(calibrationTargetRasterLayer);
+                    UpdateScale();
                 }
                 calibrationViewModel = null;
                 calibrationTargetRasterLayer = null;

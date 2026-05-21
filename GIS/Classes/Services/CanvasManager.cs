@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Media3D;
 
 namespace GIS.Services
 {
@@ -81,7 +82,47 @@ namespace GIS.Services
         }
         public void ZoomToLayer(Layer layer)
         {
-            MapToCanvasTranslator.Bounds = layer.Bounds;
+            GeoBounds bounds = layer.Bounds;
+            double width = bounds.MaxLon - bounds.MinLon;
+            double height = bounds.MaxLat - bounds.MinLat;
+            const double paddingPercent = 0.15;
+
+            double centerLon = (bounds.MinLon + bounds.MaxLon) / 2;
+            double centerLat = (bounds.MinLat + bounds.MaxLat) / 2;
+
+            double halfWidthDeg;
+            double halfHeightDeg;
+
+            if (width == 0 && height == 0)
+            {
+                const double fixedRadiusDeg = 0.05;
+                halfWidthDeg = fixedRadiusDeg;
+                halfHeightDeg = fixedRadiusDeg;
+            }
+            else
+            {
+                halfWidthDeg = (width / 2) * (1 + paddingPercent);
+                halfHeightDeg = (height / 2) * (1 + paddingPercent);
+            }
+
+            double canvasAspect = MapToCanvasTranslator.CanvasSize.Width / MapToCanvasTranslator.CanvasSize.Height;
+            double currentAspect = halfWidthDeg / halfHeightDeg;
+
+            if (currentAspect < canvasAspect)
+            {
+                halfWidthDeg = halfHeightDeg * canvasAspect;
+            }
+            else if (currentAspect > canvasAspect)
+            {
+                halfHeightDeg = halfWidthDeg / canvasAspect;
+            }
+
+            GeoBounds newBounds = new GeoBounds(centerLon - halfWidthDeg, centerLon + halfWidthDeg,
+                                                centerLat - halfHeightDeg, centerLat + halfHeightDeg);
+            if (newBounds.MaxLon - newBounds.MinLon <= 0) newBounds.MaxLon = newBounds.MinLon + 0.01;
+            if (newBounds.MaxLat - newBounds.MinLat <= 0) newBounds.MaxLat = newBounds.MinLat + 0.01;
+
+            MapToCanvasTranslator.Bounds = newBounds;
             MapToCanvasTranslator.ResetGlobalOffsets();
             MapToCanvasTranslator.CalculateRatios();
             DrawAll();

@@ -1,4 +1,5 @@
 ﻿using GIS.Classes.DrawObjects;
+using GIS.Classes.Factories;
 using GIS.Classes.Main;
 using GIS.Classes.Styles;
 using NetTopologySuite.Geometries;
@@ -163,7 +164,7 @@ namespace GIS.Services
             return result;
         }
 
-        public static Layer CreateLayerFromFeatures(List<Feature> features, string layerName)
+        public static Layer CreateLayerFromFeatures(List<Feature> features, string layerName, LayerStyle baseStyle)
         {
             if (features == null || features.Count == 0)
                 return null;
@@ -188,6 +189,12 @@ namespace GIS.Services
                 newFeature.Name = feature.Name;
                 newLayer.AddObject(newFeature);
             }
+
+            if (baseStyle != null)
+                newLayer.LayerStyle = baseStyle.Clone();
+            else
+                newLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(geoType);
+            newLayer.ApplyStyleToAllFeatures();
 
             GeoBounds layerBounds = new GeoBounds();
             foreach (var feature in newLayer.ObjectList)
