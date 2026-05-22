@@ -66,7 +66,7 @@
                         HorizontalAlignment="Right" Content="Удалить выбранный атрибут"/>
             </Grid>
 
-            <DataGrid x:Name="AttributesDataGrid" Grid.Row="5" Grid.ColumnSpan="2" 
+            <DataGrid x:Name="AttributesDataGrid" Grid.Row="5" Grid.ColumnSpan="2" IsReadOnly="True" 
                       ItemsSource="{Binding ViewModel.Attributes, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                       SelectedItem="{Binding ViewModel.SelectedAttribute, RelativeSource={RelativeSource AncestorType=UserControl}}"
                       FontFamily="Arial" FontSize="12" MinHeight="200" MaxHeight="250"

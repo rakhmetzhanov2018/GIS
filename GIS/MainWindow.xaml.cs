@@ -85,8 +85,11 @@ namespace GIS
                 layerManager.AddLayer(newLayer);
 
                 MapToCanvasTranslator.ResetGlobalOffsets();
+                canvasManager.ZoomToLayer(newLayer);
+                osmLayer.ForceRefresh();
                 canvasManager.DrawAll();
-
+                UpdateScale();
+                
                 StatusTextBox.Text = "Добавлен новый слой";
             }
             else
@@ -130,6 +133,9 @@ namespace GIS
 
                 layerManager.AddLayer(rasterLayer);
                 canvasManager.DrawAll();
+                canvasManager.ZoomToLayer(rasterLayer);
+                osmLayer.ForceRefresh();
+                UpdateScale();
                 StatusTextBox.Text = $"Импортировано изображение: {rasterLayer.Name}";
             }
         }
@@ -350,8 +356,10 @@ namespace GIS
         {
             if (LayerTreeView.SelectedItem is Layer layer)
             {
+                if (layer.Bounds.MaxLon < layer.Bounds.MinLon) return;
                 canvasManager.ZoomToLayer(layer);
                 UpdateScale();
+                osmLayer.ForceRefresh();
             }
         }
         private void MapCanvas_MouseUp(object sender, MouseButtonEventArgs e)
@@ -424,6 +432,10 @@ namespace GIS
                     {
                         canvasManager.DrawAll();
                         StatusTextBox.Text = $"Настройки слоя {layer.Name} изменены";
+
+                        var tableWindow = Application.Current.Windows.OfType<LayerAttributesTableWindow>().FirstOrDefault(w => w.Layer == layer);
+                        if (tableWindow != null)
+                            tableWindow.Close();
                     }
                 }
 
@@ -438,8 +450,17 @@ namespace GIS
         }
         private void OpenLayerAttributesTableWindow(Layer layer)
         {
-            var tableWindow = new LayerAttributesTableWindow(layer);
-            tableWindow.Show();
+            var existing = Application.Current.Windows.OfType<LayerAttributesTableWindow>().FirstOrDefault(w => w.Layer == layer);
+            if (existing != null)
+            {
+                existing.UpdateTable(layer);
+                existing.Activate();
+            }
+            else
+            {
+                var tableWindow = new LayerAttributesTableWindow(layer);
+                tableWindow.Show();
+            }
         }
 
         private void LayerZIndexUp_Click(object sender, RoutedEventArgs e)
@@ -464,6 +485,12 @@ namespace GIS
         #region FeaturePropertiesDataGrid
         private void ShowFeatureInfo(Feature feature)
         {
+            if (feature.props == null || feature.props.Count == 0)
+            {
+                FeaturePropertiesGrid.Visibility = Visibility.Collapsed;
+                return;
+            }
+
             FeaturePropertiesGrid.Visibility = Visibility.Visible;
 
             FillTable(feature);
@@ -828,6 +855,47 @@ namespace GIS
                 canvasManager.DrawAll();
                 StatusTextBox.Text = "Атрибутивный запрос выполнен";
             }
+        }
+
+        private void FeatureSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is Feature feature)
+            {
+                var layer = layerManager.FindLayerByFeature(feature);
+                if (layer == null) return;
+
+                var vm = new FeatureSettingsViewModel(feature, layer);
+                var window = new FeatureSettingsWindow(vm);
+                if (window.ShowDialog() == true)
+                {
+                    canvasManager.DrawAll();
+                    var tableWindow = Application.Current.Windows.OfType<LayerAttributesTableWindow>()
+                        .FirstOrDefault(w => w.Layer == layer);
+                    if (tableWindow != null)
+                        tableWindow.UpdateTable(layer);
+                    var container = LayerTreeView.ItemContainerGenerator.ContainerFromItem(feature) as TreeViewItem;
+                    if (container != null)
+                    {
+                        var textBlock = FindVisualChild<TextBlock>(container);
+                        if (textBlock != null) textBlock.Text = feature.Name;
+                    }
+                    var temp = LayerTreeView.ItemsSource;
+                    LayerTreeView.ItemsSource = null;
+                    LayerTreeView.ItemsSource = temp;
+                }
+            }
+        }
+
+        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T found) return found;
+                var deeper = FindVisualChild<T>(child);
+                if (deeper != null) return deeper;
+            }
+            return null;
         }
     }
 }

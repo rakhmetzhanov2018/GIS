@@ -17,6 +17,7 @@ namespace GIS.Classes.ViewModels
         private double _opacity = 1.0;
         private Color _mainColor = Colors.Red;
         private GeometryType _geometryType;
+        private List<FeatureProperty> _originalAttributes;
 
         private int _pointSize = 6;
 
@@ -82,6 +83,13 @@ namespace GIS.Classes.ViewModels
         {
             _layer = layer;
             Attributes = layer.FeatureProperties;
+
+            _originalAttributes = layer.FeatureProperties?.Select(p => new FeatureProperty
+            {
+                Name = p.Name,
+                DataType = p.DataType,
+                DefaultValue = p.DefaultValue
+            }).ToList() ?? new List<FeatureProperty>();
 
             ApplyCommand = new RelayCommand(Apply, CanApply);
             CancelCommand = new RelayCommand(Cancel);
@@ -164,6 +172,37 @@ namespace GIS.Classes.ViewModels
             _layer.Name = LayerName;
             _layer.IsVisible = IsLayerVisible;
             _layer.LayerStyle = CreateStyleFromCurrentSettings();
+
+
+            var oldNames = _originalAttributes.Select(p => p.Name).ToList();
+            var newNames = Attributes.Select(p => p.Name).ToList();
+
+            // Добавляем новые атрибуты в объекты
+            foreach (var newAttr in Attributes)
+            {
+                if (!oldNames.Contains(newAttr.Name))
+                {
+                    foreach (var feature in _layer.ObjectList)
+                    {
+                        if (!feature.props.ContainsKey(newAttr.Name))
+                            feature.props[newAttr.Name] = newAttr.DefaultValue ?? "";
+                    }
+                }
+            }
+
+            // Удаляем удалённые атрибуты из объектов
+            foreach (var oldName in oldNames)
+            {
+                if (!newNames.Contains(oldName))
+                {
+                    foreach (var feature in _layer.ObjectList)
+                    {
+                        if (feature.props.ContainsKey(oldName))
+                            feature.props.Remove(oldName);
+                    }
+                }
+            }
+
             _layer.FeatureProperties = Attributes;
 
             CloseWindow?.Invoke(this, true);

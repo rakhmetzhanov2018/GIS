@@ -219,5 +219,10 @@ namespace GIS.Classes.Layers
             isDisposed = true;
             ForceClearAll();
         }
+        public void ForceRefresh()
+        {
+            curZ = -1;
+            UpdateAll();
+        }
     }
 }

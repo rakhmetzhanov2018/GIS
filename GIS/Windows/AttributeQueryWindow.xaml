@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GIS.Windows"
         xmlns:conv="clr-namespace:GIS.Classes.Converters"
         mc:Ignorable="d"
-        Title="AttributeQueryWindow" Height="300" Width="400" WindowStartupLocation="CenterScreen">
+        Title="Атрибутивный запрос" Height="320" Width="400" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVisible"/>
     </Window.Resources>

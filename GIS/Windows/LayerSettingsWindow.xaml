@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GIS.Windows"
         xmlns:controls="clr-namespace:GIS.UserControls"
         mc:Ignorable="d"
-        Title="LayerSettingsWindow" Height="Auto" MaxWidth="500" WindowStartupLocation="CenterScreen">
+        Title="Настройка слоя" Height="Auto" MaxWidth="500" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <DataTemplate x:Key="PointSettings">

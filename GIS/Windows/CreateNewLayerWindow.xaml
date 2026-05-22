@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GIS.Windows"
         xmlns:controls="clr-namespace:GIS.UserControls"
         mc:Ignorable="d"
-        Title="CreateNewLayerWindow" Height="Auto" Width="500" UseLayoutRounding="True" SnapsToDevicePixels="True" WindowStyle="ThreeDBorderWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Создание нового слоя" Height="Auto" Width="500" UseLayoutRounding="True" SnapsToDevicePixels="True" WindowStyle="ThreeDBorderWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
 
     <Grid Margin="20">
         <Grid.Resources>

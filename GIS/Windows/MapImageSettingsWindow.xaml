@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS.Windows"
         mc:Ignorable="d"
-        Title="MapImageSettingsWindow" Height="220" Width="400" WindowStartupLocation="CenterScreen">
+        Title="Настройка положения окна" Height="220" Width="400" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid Margin="10">
             <Grid.Resources>

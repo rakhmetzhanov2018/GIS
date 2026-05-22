@@ -16,7 +16,7 @@ namespace GIS.Services
 
         public void AddLayer(Layer layer)
         {
-            layersList.Add(layer);
+            layersList.Insert(0, layer);
         }
 
         public void RemoveLayer(Layer layer)

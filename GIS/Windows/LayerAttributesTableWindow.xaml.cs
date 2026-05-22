@@ -8,16 +8,24 @@ namespace GIS
 {
     public partial class LayerAttributesTableWindow : Window
     {
+        public Layer Layer { get; private set; }
         internal LayerAttributesTableWindow(Layer layer)
         {
             InitializeComponent();
+            Layer = layer;
             Loaded += (s, e) =>
             {
                 SizeToContent = SizeToContent.WidthAndHeight;
                 InvalidateMeasure();
             };
             FillTable(layer.ObjectList);
-            LayerItemsDataGrid.Loaded += (s, e) => AdjustColumnWidths();
+            
+        }
+
+        public void UpdateTable(Layer layer)
+        {
+            Layer = layer;
+            FillTable(layer.ObjectList);
         }
 
         private void FillTable(ObservableCollection<Feature> objectList)
@@ -46,17 +54,15 @@ namespace GIS
             }
 
             LayerItemsDataGrid.ItemsSource = dt.DefaultView;
+            LayerItemsDataGrid.Loaded += (s, e) => AdjustColumnWidths();
         }
 
         private void AdjustColumnWidths()
         {
-            foreach (DataGridColumn col in LayerItemsDataGrid.Columns)
-            {
-                if (col.Header?.ToString() == "Название объекта")
-                    col.Width = new DataGridLength(150);
-                else
-                    col.Width = DataGridLength.Auto;
-            }
+            if (LayerItemsDataGrid.Columns.Count == 0) return;
+            LayerItemsDataGrid.Columns[0].Width = new DataGridLength(150);
+            for (int i = 1; i < LayerItemsDataGrid.Columns.Count; i++)
+                LayerItemsDataGrid.Columns[i].Width = DataGridLength.Auto;
         }
     }
 }

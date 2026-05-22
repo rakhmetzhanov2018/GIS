@@ -7,7 +7,37 @@
         xmlns:classes="clr-namespace:GIS.Classes.Main"
         mc:Ignorable="d"
         Title="GIS" Height="768" Width="1366">
+    <Window.Icon>
+        <BitmapImage UriSource="https://img.icons8.com/color/48/layers.png"></BitmapImage>
+    </Window.Icon>
     <Window.Resources>
+        <Style TargetType="DataGrid">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowHeight" Value="28"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#EEEEEE"/>
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#DDDDDD"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
         <Style TargetType="GroupBox">
             <Setter Property="Margin" Value="0,0,0,8"/>
             <Setter Property="Padding" Value="4"/>
@@ -226,7 +256,7 @@
                         <Grid HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>    
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="80"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -274,13 +304,13 @@
                     <HierarchicalDataTemplate DataType="{x:Type classes:Feature}">
                         <Grid HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="154"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
 
-                            <Button Grid.Column="1" Content="⚙"/>
+                            <Button Grid.Column="1" Content="⚙" Click="FeatureSettingsButton_Click" Tag="{Binding}"/>
                         </Grid>
                     </HierarchicalDataTemplate>
                 </TreeView.Resources>

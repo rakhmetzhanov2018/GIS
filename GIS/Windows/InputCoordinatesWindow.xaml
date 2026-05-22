@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GIS.Windows"
         mc:Ignorable="d"
-        Title="InputCoordinatesWindow" MaxHeight="400" Height="Auto" Width="300" 
+        Title="Окно ввода координат" MaxHeight="400" Height="Auto" Width="300" 
         WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
     <Grid Margin="10">
         <Grid.RowDefinitions>
