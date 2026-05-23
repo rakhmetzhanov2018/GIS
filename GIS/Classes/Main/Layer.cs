@@ -197,6 +197,8 @@ namespace GIS.Classes.Main
         {
             FeatureProperties = new ObservableCollection<FeatureProperty>();
 
+            if (ObjectList.Count == 0) return;
+
             foreach (var prop in ObjectList.First().props)
             {
                 FeatureProperties.Add(new FeatureProperty

@@ -38,13 +38,10 @@ namespace GIS.Classes.DrawObjects
                 Fill = Brushes.LightBlue
             };
 
-            // Рисование главного полигона
             foreach (var point in GraphicCoords)
             {
                 polygon.Points.Add(point);
             }
-
-            // TODO: Рисование дырок
 
             Figure = polygon;
         }

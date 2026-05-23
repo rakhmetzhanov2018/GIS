@@ -59,10 +59,23 @@ namespace GIS.Services
         {
             foreach (JsonElement feature in root.GetProperty("features").EnumerateArray())
             {
-                if (feature.GetProperty("geometry").GetProperty("type").ToString() == "MultiPolygon")
-                    ParseMultiPolygon(layer, feature.GetProperty("geometry"), ref bounds);
-                else
-                    layer.AddObject(ParseFeature(feature, ref bounds));
+                var geo = feature.GetProperty("geometry");
+                string geoType = geo.GetProperty("type").GetString();
+                switch (geoType)
+                {
+                    case "MultiPolygon":
+                        ParseMultiPolygon(layer, geo, ref bounds);
+                        break;
+                    case "MultiLineString":
+                        ParseMultiLineString(layer, geo, ref bounds);
+                        break;
+                    case "MultiPoint":
+                        ParseMultiPoint(layer, geo, ref bounds);
+                        break;
+                    default:
+                        layer.AddObject(ParseFeature(feature, ref bounds));
+                        break;
+                }
             }
         }
         private Feature ParseFeature(JsonElement root, ref GeoBounds bounds)
@@ -85,11 +98,11 @@ namespace GIS.Services
                         break;
 
                     case "MultiLineString":
-                        // TODO
+                        ParseMultiLineString(layer, feature, ref bounds);
                         break;
 
                     case "MultiPoint":
-                        // TODO
+                        ParseMultiPoint(layer, feature, ref bounds);
                         break;
 
                     case "Point":
@@ -112,6 +125,35 @@ namespace GIS.Services
                 layer.AddObject(new Feature(geoPolygon, []));
             }
         }
+        private void ParseMultiLineString(Layer layer, JsonElement root, ref GeoBounds bounds)
+        {
+            var coords = root.GetProperty("coordinates");
+            foreach (var lineCoords in coords.EnumerateArray())
+            {
+                var points = new List<double[]>();
+                foreach (var point in lineCoords.EnumerateArray())
+                {
+                    points.Add(new double[] { point[0].GetDouble(), point[1].GetDouble() });
+                }
+                var line = new GeoGraphicLineString(points);
+                line.GetBounds(ref bounds);
+                layer.AddObject(new Feature(line, []));
+            }
+        }
+
+        private void ParseMultiPoint(Layer layer, JsonElement root, ref GeoBounds bounds)
+        {
+            var coords = root.GetProperty("coordinates");
+            foreach (var pointCoords in coords.EnumerateArray())
+            {
+                double lon = pointCoords[0].GetDouble();
+                double lat = pointCoords[1].GetDouble();
+                var point = new GeoGraphicPoint(lon, lat);
+                point.GetBounds(ref bounds);
+                layer.AddObject(new Feature(point, []));
+            }
+        }
+
         private Dictionary<String, String> ParseProperties(JsonElement root)
         {
             var dict = new Dictionary<String, String>();
