@@ -16,6 +16,7 @@ namespace GIS.Classes.Main
         private bool _isSelected;
         private ObservableCollection<FeatureProperty> _featureProperties;
         private bool showInTree = true;
+        public virtual bool ShowAttributeTableButton => true;
 
         public string Name
         {

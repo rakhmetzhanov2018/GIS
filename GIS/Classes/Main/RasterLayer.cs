@@ -7,6 +7,7 @@ namespace GIS.Classes.Main
     public class RasterLayer : Layer
     {
         public Image RasterImage { get; private set; }
+        public override bool ShowAttributeTableButton => false;
 
         public RasterLayer(Image rasterImage, string name)
         {
