@@ -1,5 +1,4 @@
 ﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.Factories;
 using GIS.Classes.Main;
 using GIS.Classes.Styles;
 using NetTopologySuite.Geometries;

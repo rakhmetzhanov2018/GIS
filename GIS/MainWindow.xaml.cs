@@ -1,7 +1,7 @@
-﻿using GIS.Classes.Factories;
-using GIS.Classes.Layers;
+﻿using GIS.Classes.Layers;
 using GIS.Classes.Main;
 using GIS.Classes.Services;
+using GIS.Classes.Styles;
 using GIS.Classes.ViewModels;
 using GIS.Services;
 using GIS.Windows;
@@ -111,7 +111,7 @@ namespace GIS
                     FeatureProperties = CLViewModel.Attributes,
                     Bounds = new GeoBounds()
                 };
-
+                newLayer.LayerStyle = DefaultStyleFactory.CreateDefaultStyle(newLayer.GeoType);
                 layerManager.AddLayer(newLayer);
                 canvasManager.DrawAll();
 
@@ -177,8 +177,6 @@ namespace GIS
         private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
         {
             var currentMousePoint = e.GetPosition(MapCanvas);
-            CoordinatesTextBox.Text = $"Координаты: {currentMousePoint.X - MapToCanvasTranslator.GlobalOffsetX:f0}," +
-                $" {currentMousePoint.Y - MapToCanvasTranslator.GlobalOffsetY:f0}";
             UpdateCurrentMouseCoordsDisplay(currentMousePoint);
 
             switch (currentMapMode)

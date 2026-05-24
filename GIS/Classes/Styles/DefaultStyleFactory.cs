@@ -1,7 +1,6 @@
-﻿using GIS.Classes.Styles;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
-namespace GIS.Classes.Factories
+namespace GIS.Classes.Styles
 {
     public static class DefaultStyleFactory
     {

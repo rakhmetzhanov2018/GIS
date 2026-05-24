@@ -1,7 +1,7 @@
 ﻿using GIS.Classes.DrawObjects;
-using GIS.Classes.Factories;
 using GIS.Classes.Main;
 using GIS.Classes.Services;
+using GIS.Classes.Styles;
 using GIS.Classes.ViewModels;
 using GIS.Windows;
 using System.Windows;

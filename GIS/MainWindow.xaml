@@ -167,9 +167,9 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Grid.Column="0" Background="AntiqueWhite">
+        <Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Background="AntiqueWhite">
             <Grid.RowDefinitions>
-                <RowDefinition Height="70*"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="40*"></RowDefinition>
             </Grid.RowDefinitions>
 
@@ -221,7 +221,7 @@
                 </GroupBox>
             </StackPanel>
 
-            <TreeView x:Name="LayerTreeView" Grid.Row="1" Margin="10" Background="Wheat" Padding="0"
+            <TreeView x:Name="LayerTreeView" Grid.Row="1"  Margin="10" Background="Wheat" Padding="0"
                        HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" MouseDoubleClick="LayerListBox_MouseDoubleClick" 
                       KeyDown="LayerListBox_KeyDown" SelectedItemChanged="LayerTreeView_SelectedItemChanged">
                 
@@ -326,13 +326,9 @@
             </TreeView>
         </Grid>
 
-        <StatusBar Grid.Row="1" Grid.Column="1">
-            <StatusBarItem>
+        <StatusBar Grid.Row="1" Grid.Column="1" FontSize="16">
+            <StatusBarItem Margin="10, 0, 0, 0">
                 <TextBlock x:Name="StatusTextBox" Text="Готов к использованию"/>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock x:Name="CoordinatesTextBox" Text="Координаты: 0, 0"/>
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
@@ -340,7 +336,7 @@
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock x:Name="MouseGeoCoordsTextBox" Text="Границ пока нет"/>
+                <TextBlock x:Name="MouseGeoCoordsTextBox" Text="0; 0"/>
             </StatusBarItem>
         </StatusBar>
         
